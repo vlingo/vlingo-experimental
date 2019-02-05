@@ -19,27 +19,30 @@ import io.vlingo.symbio.store.journal.Stream;
 public class FoundationDBStreamReaderTest extends BaseFoundationDBJounralTest {
 
   @Test
-  public void testThatReadersAllStreams() {
+  public void testThatReadsAllStreams() {
     final int sets = 30;
     final int total = KindsOfEvents * sets;
 
     final TestUntil until = listener.untilHappenings(sets);
-
+//long startTime1 = System.currentTimeMillis();
     appendSetsOfEvents(sets);
-
     until.completes();
+//long endTime1 = System.currentTimeMillis();
+//System.out.println("APPEND TIME: " + (endTime1 - startTime1));
 
     int countOfEntries = 0;
     int index = 0;
     for ( ; index < sets; ++index) {
       final String streamName = streamNameFor(index);
-
+//long startTime2 = System.currentTimeMillis();
       final Stream<byte[]> stream = streamReader.streamFor(streamName).await();
+//long endTime2 = System.currentTimeMillis();
+//System.out.println("READ TIME: " + (endTime2 - startTime2));
 
       assertNotNull(stream);
-      assertEquals(KindsOfEvents, stream.entries.size());
+      assertEquals(KindsOfEvents, stream.size());
 
-      for (int entryIndex = 1; entryIndex <= KindsOfEvents; ++entryIndex) {
+      for (int entryIndex = 1; entryIndex <= stream.size()/*KindsOfEvents*/; ++entryIndex) {
         final Entry<byte[]> entry = stream.entries.get(entryIndex - 1);
         ++countOfEntries;
         switch (entryIndex % KindsOfEvents) {
@@ -55,6 +58,51 @@ public class FoundationDBStreamReaderTest extends BaseFoundationDBJounralTest {
         default:
           assertEquals("Should not be reachable.", 0, 1);
         }
+      }
+    }
+
+    assertEquals(total, countOfEntries);
+  }
+
+  @Test
+  public void testThatReadsFullStream() {
+    final int total = 101;
+
+    final TestUntil until = listener.untilHappenings(1); // total
+long startTime1 = System.currentTimeMillis();
+    //appendEvents(total);
+    appendEventsBatch(total);
+    until.completes();
+long endTime1 = System.currentTimeMillis();
+System.out.println("APPEND TIME: " + (endTime1 - startTime1));
+
+    final String streamName = streamNameFor(total);
+long startTime2 = System.currentTimeMillis();
+System.out.println("FINDING FOR STREAM: " + streamName);
+    final Stream<byte[]> stream = streamReader.streamFor(streamName).await();
+long endTime2 = System.currentTimeMillis();
+System.out.println("READ TIME: " + (endTime2 - startTime2));
+
+    assertNotNull(stream);
+    assertEquals(total, stream.size());
+
+    final Entry<byte[]> productCreatedEntry = stream.entries.get(0);
+    assertEquals(ProductCreated.class.getName(), productCreatedEntry.type);
+    int countOfEntries = 1;
+
+    for (int entryIndex = 2; entryIndex <= stream.size(); ++entryIndex) {
+      final Entry<byte[]> entry = stream.entries.get(entryIndex - 1);
+      ++countOfEntries;
+      final int oddEvent = entryIndex % 2;
+      switch (oddEvent) {
+      case 0:
+        assertEquals(SprintPlanned.class.getName(), entry.type);
+        break;
+      case 1:
+        assertEquals(BacklogItemCommitted.class.getName(), entry.type);
+        break;
+      default:
+        assertEquals("Should not be reachable.", 0, 1);
       }
     }
 
