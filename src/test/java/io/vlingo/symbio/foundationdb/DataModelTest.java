@@ -120,15 +120,15 @@ public class DataModelTest {
   }
 
   private void show(final String name, final byte[] key) {
-    System.out.print("KEY " + name + " (" + key.length + "): ");
-    if (key.length == 0) {
-      System.out.print("[]");
-    }
-    for (int i = 0; i < key.length; i++)
-    {
-      int val = Byte.toUnsignedInt(key[i]);
-      System.out.print("[" + val +"]");
-    }
-    System.out.println();
+//    System.out.print("KEY " + name + " (" + key.length + "): ");
+//    if (key.length == 0) {
+//      System.out.print("[]");
+//    }
+//    for (int i = 0; i < key.length; i++)
+//    {
+//      int val = Byte.toUnsignedInt(key[i]);
+//      System.out.print("[" + val +"]");
+//    }
+//    System.out.println();
   }
 }
