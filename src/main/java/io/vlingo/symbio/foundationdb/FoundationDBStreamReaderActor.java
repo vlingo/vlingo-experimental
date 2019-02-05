@@ -8,14 +8,13 @@
 package io.vlingo.symbio.foundationdb;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import com.apple.foundationdb.Database;
 import com.apple.foundationdb.FDB;
 import com.apple.foundationdb.KeySelector;
 import com.apple.foundationdb.KeyValue;
-import com.apple.foundationdb.Transaction;
+import com.apple.foundationdb.ReadTransaction;
 import com.apple.foundationdb.tuple.Tuple;
 
 import io.vlingo.actors.Actor;
@@ -39,6 +38,10 @@ public class FoundationDBStreamReaderActor extends Actor implements StreamReader
 
   /**
    * Construct my default state.
+   * @param name the String name of the journal
+   * @param entriesSubspaceKey the byte[] key of the entries subspace
+   * @param streamsSubspaceKey the byte[] key of the streams subspace
+   * @param snapshotsSubspaceKey the byte[] key of the snapshot subspace
    */
   public FoundationDBStreamReaderActor(
           final String name,
@@ -65,11 +68,11 @@ public class FoundationDBStreamReaderActor extends Actor implements StreamReader
    */
   @Override
   public Completes<Stream<byte[]>> streamFor(final String streamName, final int fromStreamVersion) {
-    database.run(txn -> {
+    database.read(txn -> {
       final Stream<byte[]> stream = streamFor(streamName, fromStreamVersion, txn);
       return completes().with(stream);
     });
-    return null;
+    return completes();
   }
 
   /**
@@ -87,10 +90,10 @@ public class FoundationDBStreamReaderActor extends Actor implements StreamReader
    * if any, or {@code null} if none exists.
    * @param streamName the String name of the stream
    * @param streamVersion the int version of the stream
-   * @param txn the Transaction within which to perform the read
+   * @param txn the ReadTransaction within which to perform the read
    * @return KeyValue
    */
-  private KeyValue snapshotOf(final String streamName, final int streamVersion, final Transaction txn) {
+  private KeyValue snapshotOf(final String streamName, final int streamVersion, final ReadTransaction txn) {
     try {
       final int maybenapshotVersion = streamVersion > 0 ? streamVersion : Integer.MAX_VALUE;
       final byte[] snapshotKey = Tuple.from(snapshotsSubspaceKey, streamName, maybenapshotVersion).pack();
@@ -112,35 +115,25 @@ public class FoundationDBStreamReaderActor extends Actor implements StreamReader
    * the {@code fromStreamVersion}, the actual version read is from the snapshot version.
    * @param streamName the String name of the stream
    * @param fromStreamVersion the int version of the stream where reading should/may begin
-   * @param txn a Transaction of my database within which the reading is performed
+   * @param txn a ReadTransaction of my database within which the reading is performed
    * @return @{code Stream<byte[]>}
    */
-  private Stream<byte[]> streamFor(final String streamName, final int fromStreamVersion, final Transaction txn) {
+  private Stream<byte[]> streamFor(final String streamName, final int fromStreamVersion, final ReadTransaction txn) {
     try {
       final KeyValue snapshot = snapshotOf(streamName, fromStreamVersion, txn);
       final int actualFromStreamVersion = snapshot == null ?
               fromStreamVersion :
               (int) Tuple.fromBytes(snapshot.getKey()).get(2);
-//      final byte[] streamEntriesKey = Tuple.from(streamsSubspaceKey, streamName).pack();
-//      final Range range = Range.startsWith(streamEntriesKey);
-//      System.out.println("RANGE: " + range);
-//      final List<KeyValue> keysValues = txn.getRange(range, ReadTransaction.ROW_LIMIT_UNLIMITED, false).asList().get();
-//      System.out.println("FOUND RANGE: " + keysValues.size());
-      final List<KeyValue> streamOfKeysValues = new ArrayList<>(2);
-      for (int idx = 0; ; ++idx) {
-        final byte[] streamEntriesKey = Tuple.from(streamsSubspaceKey, streamName, actualFromStreamVersion + idx).pack();
-        final KeySelector begin = KeySelector.firstGreaterOrEqual(streamEntriesKey);
-        final KeySelector end = begin.add(1);
-        //final byte[] streamLastKey = Tuple.from(streamsSubspaceKey, streamName, 100).pack();
-        // final KeySelector end = KeySelector.lastLessOrEqual(streamLastKey);
-        final List<KeyValue> oneKeyValue = txn.getRange(begin, end, 1, false).asList().get();
-        if (oneKeyValue == null || oneKeyValue.isEmpty() ||
-                !Arrays.equals(streamEntriesKey, oneKeyValue.get(0).getKey())) break;
-        streamOfKeysValues.addAll(oneKeyValue);
-      }
-      if (!streamOfKeysValues.isEmpty()) {
-        return streamFrom(streamName, actualFromStreamVersion, streamOfKeysValues, snapshot, txn);
-      }
+        final byte[] streamBeginKey = Tuple.from(streamsSubspaceKey, streamName, actualFromStreamVersion).pack();
+        final KeySelector begin = KeySelector.firstGreaterOrEqual(streamBeginKey);
+        final byte[] streamEndKey = Tuple.from(streamsSubspaceKey, streamName, Integer.MAX_VALUE).pack();
+        // NOTE: It I don't add(1) to this I always get one less than the end-of-stream size.
+        // Between this and all the Tuple instances there must be tons of garbage generated.
+        final KeySelector end = KeySelector.lastLessOrEqual(streamEndKey).add(1);
+        final List<KeyValue> streamOfKeysValues = txn.getRange(begin, end, ReadTransaction.ROW_LIMIT_UNLIMITED, false).asList().get();
+        if (!streamOfKeysValues.isEmpty()) {
+          return streamFrom(streamName, actualFromStreamVersion, streamOfKeysValues, snapshot, txn);
+        }
     } catch (Throwable t) {
       logger().log("StreamReader '" + name
               + "' failed to read the stream: " + streamName + ":" + fromStreamVersion
@@ -156,7 +149,7 @@ public class FoundationDBStreamReaderActor extends Actor implements StreamReader
    * @param streamVersion the int version of the stream
    * @param streamKeysValues the {@code List<KeyValue>} containing encoded entries
    * @param snapshot the KeyValue containing the encoded snapshot state, or null
-   * @param txn a Transaction of my database within which the reading is performed
+   * @param txn a ReadTransaction of my database within which the reading is performed
    * @return {@code Stream<byte[]>}
    * @throws Exception the exception possibly occurring inside the EncoderDecoder
    */
@@ -165,7 +158,7 @@ public class FoundationDBStreamReaderActor extends Actor implements StreamReader
           final int streamVersion,
           final List<KeyValue> streamKeysValues,
           final KeyValue snapshot,
-          final Transaction txn)
+          final ReadTransaction txn)
   throws Exception {
     final List<KeyValue> entriesKeysValues = streamJoinUsing(streamKeysValues, txn);
     final List<Entry<byte[]>> entries = toEntries(entriesKeysValues, streamName);
@@ -178,7 +171,7 @@ public class FoundationDBStreamReaderActor extends Actor implements StreamReader
 
   private List<KeyValue> streamJoinUsing(
           final List<KeyValue> streamKeysValues,
-          final Transaction txn)
+          final ReadTransaction txn)
   throws Exception {
     final List<KeyValue> entriesKeysValues = new ArrayList<>(streamKeysValues.size());
     for (final KeyValue kv : streamKeysValues) {
