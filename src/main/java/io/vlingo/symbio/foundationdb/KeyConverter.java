@@ -14,6 +14,7 @@ public class KeyConverter {
 
   /**
    * Answer the {@code String} representation of the {@code versionTimestamp}.
+   * @param versionTimestamp the byte[] version timestamp
    * @return String
    */
   public static String fromVersionTimestamp(final byte[] versionTimestamp) {
