@@ -7,7 +7,9 @@
 
 package io.vlingo.symbio.foundationdb;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.Before;
 
@@ -15,6 +17,7 @@ import com.apple.foundationdb.Database;
 import com.apple.foundationdb.FDB;
 
 import io.vlingo.actors.World;
+import io.vlingo.symbio.Source;
 import io.vlingo.symbio.store.journal.Journal;
 import io.vlingo.symbio.store.journal.JournalReader;
 import io.vlingo.symbio.store.journal.StreamReader;
@@ -61,6 +64,42 @@ public abstract class BaseFoundationDBJounralTest {
 
       journal.appendAll(productStreamId, 1, Arrays.asList(productCreated, sprintPlanned, backlogItemCommitted), null, null);
     }
+  }
+
+  protected void appendEvents(final int numberOfEvents) {
+    final String productStreamId = streamNameFor(numberOfEvents);
+    final ProductCreated productCreated = new ProductCreated(productStreamId);
+    journal.append(productStreamId, 1, productCreated, null, null);
+    boolean even = true;
+    for (int idx = 1; idx < numberOfEvents; ++idx) {
+      if (even) {
+        final SprintPlanned sprintPlanned = new SprintPlanned("sprint"+idx);
+        journal.append(productStreamId, idx+1, sprintPlanned, null, null);
+      } else {
+        final BacklogItemCommitted backlogItemCommitted = new BacklogItemCommitted("backlogItem"+idx, "sprint"+idx);
+        journal.append(productStreamId, idx+1, backlogItemCommitted, null, null);
+      }
+      even = !even;
+    }
+  }
+
+  protected void appendEventsBatch(final int numberOfEvents) {
+    final List<Source<byte[]>> batch = new ArrayList<>();
+    final String productStreamId = streamNameFor(numberOfEvents);
+    final ProductCreated productCreated = new ProductCreated(productStreamId);
+    batch.add(productCreated);
+    boolean even = true;
+    for (int idx = 1; idx < numberOfEvents; ++idx) {
+      if (even) {
+        final SprintPlanned sprintPlanned = new SprintPlanned("sprint"+idx);
+        batch.add(sprintPlanned);
+      } else {
+        final BacklogItemCommitted backlogItemCommitted = new BacklogItemCommitted("backlogItem"+idx, "sprint"+idx);
+        batch.add(backlogItemCommitted);
+      }
+      even = !even;
+    }
+    journal.appendAll(productStreamId, 1, batch, null, null);
   }
 
   protected String streamNameFor(final int index) {
