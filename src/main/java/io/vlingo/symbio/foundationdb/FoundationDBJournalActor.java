@@ -195,7 +195,7 @@ public class FoundationDBJournalActor extends Actor implements Journal<byte[]> {
 
   private void appendStreamSnapshot(
           final String streamName,
-          final int streamVersion,
+          final long streamVersion,
           final State<byte[]> snapshot,
           final Transaction inTransaction) {
 
