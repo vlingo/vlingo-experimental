@@ -121,9 +121,9 @@ public class FoundationDBStreamReaderActor extends Actor implements StreamReader
   private Stream<byte[]> streamFor(final String streamName, final int fromStreamVersion, final ReadTransaction txn) {
     try {
       final KeyValue snapshot = snapshotOf(streamName, fromStreamVersion, txn);
-      final int actualFromStreamVersion = snapshot == null ?
+      final long actualFromStreamVersion = snapshot == null ?
               fromStreamVersion :
-              (int) Tuple.fromBytes(snapshot.getKey()).get(2);
+              Tuple.fromBytes(snapshot.getKey()).getLong(2);
         final byte[] streamBeginKey = Tuple.from(streamsSubspaceKey, streamName, actualFromStreamVersion).pack();
         final KeySelector begin = KeySelector.firstGreaterOrEqual(streamBeginKey);
         final byte[] streamEndKey = Tuple.from(streamsSubspaceKey, streamName, Integer.MAX_VALUE).pack();
@@ -132,7 +132,7 @@ public class FoundationDBStreamReaderActor extends Actor implements StreamReader
         final KeySelector end = KeySelector.lastLessOrEqual(streamEndKey).add(1);
         final List<KeyValue> streamOfKeysValues = txn.getRange(begin, end, ReadTransaction.ROW_LIMIT_UNLIMITED, false).asList().get();
         if (!streamOfKeysValues.isEmpty()) {
-          return streamFrom(streamName, actualFromStreamVersion, streamOfKeysValues, snapshot, txn);
+          return streamFrom(streamName, (int) actualFromStreamVersion, streamOfKeysValues, snapshot, txn);
         }
     } catch (Throwable t) {
       logger().log("StreamReader '" + name
