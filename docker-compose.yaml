@@ -27,10 +27,10 @@ services:
     image: foundationdb:6.0.15
     environment:
       FDB_COORDINATOR: fdb-coordinator
-#  app:
-#    build:
-#      context: app
-#    ports:
-#      - 5000:5000
-#    environment:
-#      FDB_COORDINATOR: fdb-coordinator
+  app:
+    build:
+      context: app
+    ports:
+      - 5000:5000
+    environment:
+      FDB_COORDINATOR: fdb-coordinator
