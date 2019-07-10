@@ -7,28 +7,27 @@
 
 package io.vlingo.symbio.foundationdb;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.apple.foundationdb.Database;
 import com.apple.foundationdb.FDB;
 import com.apple.foundationdb.KeySelector;
 import com.apple.foundationdb.KeyValue;
 import com.apple.foundationdb.ReadTransaction;
 import com.apple.foundationdb.tuple.Tuple;
-
 import io.vlingo.actors.Actor;
 import io.vlingo.common.Completes;
-import io.vlingo.symbio.Entry;
+import io.vlingo.symbio.BaseEntry;
 import io.vlingo.symbio.State;
 import io.vlingo.symbio.store.journal.Stream;
 import io.vlingo.symbio.store.journal.StreamReader;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Actor-based {@code StreamReader} for the {@code Journal} over FoundationDB.
  */
 public class FoundationDBStreamReaderActor extends Actor implements StreamReader<byte[]> {
-  private static final List<Entry<byte[]>> EmptyEntries = new ArrayList<>();
+  private static final List<BaseEntry<byte[]>> EmptyEntries = new ArrayList<>();
 
   private final Database database;
   private final String name;
@@ -104,7 +103,7 @@ public class FoundationDBStreamReaderActor extends Actor implements StreamReader
         return keysValues.get(0);
       }
     } catch (Throwable t) {
-      logger().log("StreamReader '" + name + "' failed to read next because: " + t.getMessage(), t);
+      logger().error("StreamReader '" + name + "' failed to read next because: " + t.getMessage(), t);
     }
     return null;
   }
@@ -135,7 +134,7 @@ public class FoundationDBStreamReaderActor extends Actor implements StreamReader
           return streamFrom(streamName, (int) actualFromStreamVersion, streamOfKeysValues, snapshot, txn);
         }
     } catch (Throwable t) {
-      logger().log("StreamReader '" + name
+      logger().error("StreamReader '" + name
               + "' failed to read the stream: " + streamName + ":" + fromStreamVersion
               + " because: " + t.getMessage(), t);
     }
@@ -161,12 +160,11 @@ public class FoundationDBStreamReaderActor extends Actor implements StreamReader
           final ReadTransaction txn)
   throws Exception {
     final List<KeyValue> entriesKeysValues = streamJoinUsing(streamKeysValues, txn);
-    final List<Entry<byte[]>> entries = toEntries(entriesKeysValues, streamName);
+    final List<BaseEntry<byte[]>> entries = toEntries(entriesKeysValues, streamName);
     final State<byte[]> state = snapshot == null ?
             null :
             EncoderDecoder.decodeState(snapshot.getValue(), streamName);
-    final Stream<byte[]> stream = new Stream<>(streamName, streamVersion, entries, state);
-    return stream;
+    return new Stream<>(streamName, streamVersion, entries, state);
   }
 
   private List<KeyValue> streamJoinUsing(
@@ -187,19 +185,19 @@ public class FoundationDBStreamReaderActor extends Actor implements StreamReader
   }
 
   /**
-   * Answer a new {@code List<Entry<byte[]>>} as built from the {@code entriesKeysValues}.
+   * Answer a new {@code List<BaseEntry.BinaryEntry>} as built from the {@code entriesKeysValues}.
    * @param entriesKeysValues the {@code List<KeyValue>} read from my database
    * @param streamName the String name of the stream that may be used as the identity of each Entry
-   * @return {@code List<Entry<byte[]>>}
+   * @return {@code List<BaseEntry.BinaryEntry>}
    * @throws Exception the exception possibly occurring inside the EncoderDecoder
    */
-  private List<Entry<byte[]>> toEntries(
+  private List<BaseEntry<byte[]>> toEntries(
           final List<KeyValue> entriesKeysValues,
           final String streamName)
   throws Exception {
-    final List<Entry<byte[]>> entries = new ArrayList<>(entriesKeysValues.size());
+    final List<BaseEntry<byte[]>> entries = new ArrayList<>(entriesKeysValues.size());
     for (final KeyValue kv : entriesKeysValues) {
-      final Entry<byte[]> entry = EncoderDecoder.decodeEntry(kv.getValue(), streamName);
+      final BaseEntry.BinaryEntry entry = EncoderDecoder.decodeEntry(kv.getValue(), streamName);
       entries.add(entry);
     }
     return entries;

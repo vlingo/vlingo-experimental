@@ -7,25 +7,24 @@
 
 package io.vlingo.symbio.foundationdb;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import com.apple.foundationdb.Database;
 import com.apple.foundationdb.FDB;
 import com.apple.foundationdb.KeySelector;
 import com.apple.foundationdb.KeyValue;
 import com.apple.foundationdb.tuple.Tuple;
-
 import io.vlingo.actors.Actor;
 import io.vlingo.common.Completes;
-import io.vlingo.symbio.Entry;
+import io.vlingo.symbio.BaseEntry.BinaryEntry;
 import io.vlingo.symbio.store.journal.JournalReader;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Actor-based {@code JournalReader} over FoundationDB.
  */
-public class FoundationDBJournalReaderActor extends Actor implements JournalReader<byte[]> {
+public class FoundationDBJournalReaderActor extends Actor implements JournalReader<BinaryEntry> {
   private static final byte[] StartingId = new byte[0];
   private static final byte[] EndId = new byte[] { (byte) 0xFF };
 
@@ -43,6 +42,11 @@ public class FoundationDBJournalReaderActor extends Actor implements JournalRead
     this.database = database();
   }
 
+  @Override
+  public void close() {
+    this.database.close();
+  }
+
   /*
    * @see io.vlingo.symbio.store.journal.JournalReader#name()
    */
@@ -55,10 +59,10 @@ public class FoundationDBJournalReaderActor extends Actor implements JournalRead
    * @see io.vlingo.symbio.store.journal.JournalReader#readNext()
    */
   @Override
-  public Completes<Entry<byte[]>> readNext() {
+  public Completes<BinaryEntry> readNext() {
     final KeySelector begin = afterCurrent ? keyAfter(currentId) : keyEqualishTo(currentId);
     final KeySelector end = begin.add(1);
-    final List<Entry<byte[]>> maybeOne = readFromTo(begin, end, 1);
+    final List<BinaryEntry> maybeOne = readFromTo(begin, end, 1);
     return completes().with(maybeOne.isEmpty() ? null : maybeOne.get(0));
   }
 
@@ -66,10 +70,10 @@ public class FoundationDBJournalReaderActor extends Actor implements JournalRead
    * @see io.vlingo.symbio.store.journal.JournalReader#readNext(int)
    */
   @Override
-  public Completes<List<Entry<byte[]>>> readNext(final int maximumEntries) {
+  public Completes<List<BinaryEntry>> readNext(final int maximumEntries) {
     final KeySelector begin = afterCurrent ? keyAfter(currentId) : keyEqualishTo(currentId);
     final KeySelector end = begin.add(maximumEntries);
-    final List<Entry<byte[]>> entries = readFromTo(begin, end, maximumEntries);
+    final List<BinaryEntry> entries = readFromTo(begin, end, maximumEntries);
     return completes().with(entries);
   }
 
@@ -105,30 +109,27 @@ public class FoundationDBJournalReaderActor extends Actor implements JournalRead
 
   private Database database() {
     final FDB fdb = FDB.selectAPIVersion(600);
-    final Database database = fdb.open();
-    return database;
+    return fdb.open();
   }
 
   private void fastForward() {
     currentId = EndId;
   }
 
-  private List<Entry<byte[]>> readFromTo(
-          final KeySelector begin,
-          final KeySelector end,
-          final int limit) {
+  private List<BinaryEntry> readFromTo(final KeySelector begin, final KeySelector end, final int limit) {
 
     final byte[] saveId = currentId;
 
-    final List<Entry<byte[]>> entries = database.run(txn -> {
+    final List<BinaryEntry> entries = database.run(txn -> {
       try {
-        final List<Entry<byte[]>> all = new ArrayList<>(limit);
+        final List<BinaryEntry> all = new ArrayList<>(limit);
         final List<KeyValue> keysValues = txn.getRange(begin, end, limit, false).asList().get();
         for (KeyValue kv : keysValues) {
           final Tuple keySegments = Tuple.fromBytes(kv.getKey());
-          if (!preserveCurrentId(keySegments)) break;
+          if (!preserveCurrentId(keySegments))
+            break;
           final String id = KeyConverter.fromVersionTimestamp(currentId);
-          final Entry<byte[]> entry = EncoderDecoder.decodeEntry(kv.getValue(), id);
+          final BinaryEntry entry = EncoderDecoder.decodeEntry(kv.getValue(), id);
           all.add(entry);
         }
         if (currentId != saveId) {
@@ -136,7 +137,7 @@ public class FoundationDBJournalReaderActor extends Actor implements JournalRead
         }
         return all;
       } catch (Throwable t) {
-        logger().log("JournalReader '" + name + "' failed to read next because: " + t.getMessage(), t);
+        logger().error("JournalReader '" + name + "' failed to read next because: " + t.getMessage(), t);
       }
 
       currentId = saveId;
@@ -157,6 +158,7 @@ public class FoundationDBJournalReaderActor extends Actor implements JournalRead
 
   /**
    * Answer whether or not the currentId was successfully preserved.
+   *
    * @param keySegments the Tuple
    * @return boolean
    */

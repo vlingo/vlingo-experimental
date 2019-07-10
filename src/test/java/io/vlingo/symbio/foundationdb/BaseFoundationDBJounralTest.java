@@ -7,27 +7,28 @@
 
 package io.vlingo.symbio.foundationdb;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import org.junit.Before;
-
 import com.apple.foundationdb.Database;
 import com.apple.foundationdb.FDB;
-
 import io.vlingo.actors.World;
+import io.vlingo.symbio.BaseEntry;
+import io.vlingo.symbio.EntryAdapterProvider;
 import io.vlingo.symbio.Source;
+import io.vlingo.symbio.StateAdapterProvider;
 import io.vlingo.symbio.store.journal.Journal;
 import io.vlingo.symbio.store.journal.JournalReader;
 import io.vlingo.symbio.store.journal.StreamReader;
+import org.junit.Before;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public abstract class BaseFoundationDBJounralTest {
   protected static final int KindsOfEvents = 3;
 
   protected Journal<byte[]> journal;
-  protected JournalReader<byte[]> journalReader;
-  protected MockJournalListener listener;
+  protected JournalReader<BaseEntry.BinaryEntry> journalReader;
+  protected MockJournalDispatcher dispatcher;
   protected StreamReader<byte[]> streamReader;
   protected World world;
   
@@ -45,12 +46,13 @@ public abstract class BaseFoundationDBJounralTest {
     database.run(txn -> { txn.clear("".getBytes(), "\\xFF".getBytes()); return null; });
 
     world = World.startWithDefaults("fdb-journal-tests");
-    listener = new MockJournalListener();
-    journal = Journal.using(world.stage(), FoundationDBJournalActor.class, listener, "fdb-test-journal");
-    journal.registerEntryAdapter(ProductCreated.class, productCreatedEntryAdapter);
-    journal.registerEntryAdapter(SprintPlanned.class, sprintPlannedEntryAdapter);
-    journal.registerEntryAdapter(BacklogItemCommitted.class, backlogItemCommittedEntryAdapter);
-    journal.registerStateAdapter(TestType.class, testTypeStateAdapter);
+    dispatcher = new MockJournalDispatcher();
+    EntryAdapterProvider.instance(world).registerAdapter(ProductCreated.class, productCreatedEntryAdapter);
+    EntryAdapterProvider.instance(world).registerAdapter(SprintPlanned.class, sprintPlannedEntryAdapter);
+    EntryAdapterProvider.instance(world).registerAdapter(BacklogItemCommitted.class, backlogItemCommittedEntryAdapter);
+    StateAdapterProvider.instance(world).registerAdapter(TestType.class, testTypeStateAdapter);
+
+    journal = Journal.using(world.stage(), FoundationDBJournalActor.class, dispatcher, "fdb-test-journal");
     journalReader = journal.journalReader("fdb-test-journal-reader").await();
     streamReader = journal.streamReader("fdb-test-stream-reader").await();
   }

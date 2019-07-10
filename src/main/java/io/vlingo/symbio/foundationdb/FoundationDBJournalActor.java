@@ -7,14 +7,6 @@
 
 package io.vlingo.symbio.foundationdb;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-
 import com.apple.foundationdb.Database;
 import com.apple.foundationdb.FDB;
 import com.apple.foundationdb.MutationType;
@@ -25,7 +17,6 @@ import com.apple.foundationdb.directory.DirectorySubspace;
 import com.apple.foundationdb.subspace.Subspace;
 import com.apple.foundationdb.tuple.Tuple;
 import com.apple.foundationdb.tuple.Versionstamp;
-
 import io.vlingo.actors.Actor;
 import io.vlingo.actors.Definition;
 import io.vlingo.common.Completes;
@@ -35,17 +26,30 @@ import io.vlingo.common.Success;
 import io.vlingo.common.Tuple2;
 import io.vlingo.common.Tuple4;
 import io.vlingo.common.collection.ResettableReadOnlyList;
+import io.vlingo.common.identity.IdentityGenerator;
+import io.vlingo.symbio.BaseEntry;
 import io.vlingo.symbio.Entry;
-import io.vlingo.symbio.EntryAdapter;
+import io.vlingo.symbio.EntryAdapterProvider;
+import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.Source;
 import io.vlingo.symbio.State;
-import io.vlingo.symbio.StateAdapter;
+import io.vlingo.symbio.StateAdapterProvider;
 import io.vlingo.symbio.store.Result;
 import io.vlingo.symbio.store.StorageException;
+import io.vlingo.symbio.store.dispatch.Dispatchable;
+import io.vlingo.symbio.store.dispatch.Dispatcher;
 import io.vlingo.symbio.store.journal.Journal;
-import io.vlingo.symbio.store.journal.JournalListener;
 import io.vlingo.symbio.store.journal.JournalReader;
 import io.vlingo.symbio.store.journal.StreamReader;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Actor-based {@code Journal} over FoundationDB.
@@ -55,65 +59,72 @@ public class FoundationDBJournalActor extends Actor implements Journal<byte[]> {
 
   private final Database database;
   private final EncoderDecoder encoder;
-  private final Map<Class<?>,EntryAdapter<? extends Source<?>,? extends Entry<?>>> entryAdapters;
   private final byte[] entriesSubspaceKey;
   private int entriesUserVersion;
-  private final JournalListener<byte[]> listener;
-  private final Map<String,JournalReader<byte[]>> journalReaders;
   private final String name;
+  private final Dispatcher<Dispatchable<Entry<byte[]>, State<byte[]>>> dispatcher;
   private final ResettableReadOnlyList<Source<?>> wrapper;
   private final byte[] snapshotsSubspaceKey;
-  private final Map<Class<?>,StateAdapter<?,?>> stateAdapters;
-  private final Map<String,StreamReader<byte[]>> streamReaders;
+  private final Map<String, JournalReader<BaseEntry.BinaryEntry>> journalReaders;
+  private final Map<String, StreamReader<byte[]>> streamReaders;
   private final byte[] streamsSubspaceKey;
 
-  public FoundationDBJournalActor(final JournalListener<byte[]> listener, final String name) throws Exception {
-    this.listener = listener;
+  private final EntryAdapterProvider entryAdapterProvider;
+  private final StateAdapterProvider stateAdapterProvider;
+  private final IdentityGenerator dispatchablesIdentityGenerator;
+
+  public FoundationDBJournalActor(final Dispatcher<Dispatchable<Entry<byte[]>, State<byte[]>>> dispatcher, final String name) throws Exception {
     this.name = name;
-    final Tuple4<Database,byte[],byte[],byte[]> database = initialize(name);
+    this.dispatcher = dispatcher;
+    final Tuple4<Database, byte[], byte[], byte[]> database = initialize(name);
     this.database = database._1;
     this.entriesSubspaceKey = database._2;
     this.entriesUserVersion = 0;
     this.streamsSubspaceKey = database._3;
     this.snapshotsSubspaceKey = database._4;
-    this.entryAdapters = new HashMap<>();
-    this.stateAdapters = new HashMap<>();
+    this.entryAdapterProvider = EntryAdapterProvider.instance(stage().world());
+    this.stateAdapterProvider = StateAdapterProvider.instance(stage().world());
     this.journalReaders = new HashMap<>(1);
     this.streamReaders = new HashMap<>(1);
     this.encoder = new EncoderDecoder();
     this.wrapper = new ResettableReadOnlyList<>();
+    this.dispatchablesIdentityGenerator = new IdentityGenerator.RandomIdentityGenerator();
   }
 
-  /*
-   * @see io.vlingo.symbio.store.journal.Journal#append(java.lang.String, int, io.vlingo.symbio.Source, io.vlingo.symbio.store.journal.Journal.AppendResultInterest, java.lang.Object)
+  /**
+   * {@inheritDoc}
    */
   @Override
-  public <S,ST> void append(final String streamName, final int streamVersion, final Source<S> source, final AppendResultInterest interest, final Object object) {
-    appendUsing(streamName, streamVersion, source, null, interest, object);
+  public <S, ST> void append(final String streamName, final int streamVersion, final Source<S> source, final Metadata metadata,
+          final AppendResultInterest interest, final Object object) {
+    appendUsing(streamName, streamVersion, source, null, interest, object, metadata);
   }
 
-  /*
-   * @see io.vlingo.symbio.store.journal.Journal#appendWith(java.lang.String, int, io.vlingo.symbio.Source, java.lang.Object, io.vlingo.symbio.store.journal.Journal.AppendResultInterest, java.lang.Object)
+  /**
+   * {@inheritDoc}
    */
   @Override
-  public <S,ST> void appendWith(final String streamName, final int streamVersion, final Source<S> source, final ST snapshot, final AppendResultInterest interest, final Object object) {
-    appendUsing(streamName, streamVersion, source, snapshot, interest, object);
+  public <S, ST> void appendWith(final String streamName, final int streamVersion, final Source<S> source, final Metadata metadata, final ST snapshot,
+          final AppendResultInterest interest, final Object object) {
+    appendUsing(streamName, streamVersion, source, snapshot, interest, object, metadata);
   }
 
-  /*
-   * @see io.vlingo.symbio.store.journal.Journal#appendAll(java.lang.String, int, java.util.List, io.vlingo.symbio.store.journal.Journal.AppendResultInterest, java.lang.Object)
+  /**
+   * {@inheritDoc}
    */
   @Override
-  public <S,ST> void appendAll(final String streamName, final int fromStreamVersion, final List<Source<S>> sources, final AppendResultInterest interest, final Object object) {
-    appendUsing(streamName, fromStreamVersion, sources, null, interest, object, true);
+  public <S, ST> void appendAll(final String streamName, final int fromStreamVersion, final List<Source<S>> sources, final Metadata metadata,
+          final AppendResultInterest interest, final Object object) {
+    appendUsing(streamName, fromStreamVersion, sources, null, interest, object, true, metadata);
   }
 
-  /*
-   * @see io.vlingo.symbio.store.journal.Journal#appendAllWith(java.lang.String, int, java.util.List, java.lang.Object, io.vlingo.symbio.store.journal.Journal.AppendResultInterest, java.lang.Object)
+  /**
+   * {@inheritDoc}
    */
   @Override
-  public <S,ST> void appendAllWith(final String streamName, final int fromStreamVersion, final List<Source<S>> sources, final ST snapshot, final AppendResultInterest interest, final Object object) {
-    appendUsing(streamName, fromStreamVersion, sources, snapshot, interest, object, true);
+  public <S, ST> void appendAllWith(final String streamName, final int fromStreamVersion, final List<Source<S>> sources, final Metadata metadata,
+          final ST snapshot, final AppendResultInterest interest, final Object object) {
+    appendUsing(streamName, fromStreamVersion, sources, snapshot, interest, object, true, metadata);
   }
 
   /*
@@ -121,8 +132,8 @@ public class FoundationDBJournalActor extends Actor implements Journal<byte[]> {
    */
   @Override
   @SuppressWarnings("unchecked")
-  public Completes<JournalReader<byte[]>> journalReader(final String name) {
-    JournalReader<byte[]> reader = journalReaders.get(name);
+  public Completes<JournalReader<BaseEntry.BinaryEntry>> journalReader(final String name) {
+    JournalReader<BaseEntry.BinaryEntry> reader = journalReaders.get(name);
     if (reader == null) {
       final List<Object> parameters = Definition.parameters(name, entriesSubspaceKey);
       reader = childActorFor(JournalReader.class, Definition.has(FoundationDBJournalReaderActor.class, parameters));
@@ -146,43 +157,8 @@ public class FoundationDBJournalActor extends Actor implements Journal<byte[]> {
     return completes().with(reader);
   }
 
-  /*
-   * @see io.vlingo.symbio.store.journal.Journal#registerEntryAdapter(java.lang.Class, io.vlingo.symbio.EntryAdapter)
-   */
-  @Override
-  public <S extends Source<?>, E extends Entry<?>> void registerEntryAdapter(final Class<S> sourceType, final EntryAdapter<S, E> adapter) {
-    entryAdapters.put(sourceType, adapter);
-  }
-
-  /*
-   * @see io.vlingo.symbio.store.journal.Journal#registerStateAdapter(java.lang.Class, io.vlingo.symbio.StateAdapter)
-   */
-  @Override
-  public <S, R extends State<?>> void registerStateAdapter(final Class<S> stateType, final StateAdapter<S, R> adapter) {
-    stateAdapters.put(stateType, adapter);
-  }
-
-  /**
-   * Answer the {@code EntryAdapter<S,E>} adaptation of the {@code Class<S>} typed {@code sourceType}.
-   * @param sourceType the {@code Class<S>} type of the adapter to answer
-   * @return {@code EntryAdapter<S,E>}
-   */
-  @SuppressWarnings("unchecked")
-  private <S extends Source<?>,E extends Entry<?>> EntryAdapter<S,E> adapter(final Class<S> sourceType) {
-    final EntryAdapter<S,E> adapter = (EntryAdapter<S,E>) entryAdapters.get(sourceType);
-    if (adapter != null) {
-      return adapter;
-    }
-    throw new StorageException(Result.Error, "Adapter not registrered for: " + sourceType.getName());
-  }
-
-  private <S> void appendStreamEntry(
-          final byte[] fullEntryKey,
-          final byte[] entryKey,
-          final String streamName,
-          final int streamVersion,
-          final Entry<byte[]> entry,
-          final Transaction inTransaction) {
+  private <S> void appendStreamEntry(final byte[] fullEntryKey, final byte[] entryKey, final String streamName, final int streamVersion,
+          final Entry<byte[]> entry, final Transaction inTransaction) {
 
     try {
       inTransaction.set(fullEntryKey, encoder.encode(entry));
@@ -193,11 +169,7 @@ public class FoundationDBJournalActor extends Actor implements Journal<byte[]> {
     }
   }
 
-  private void appendStreamSnapshot(
-          final String streamName,
-          final long streamVersion,
-          final State<byte[]> snapshot,
-          final Transaction inTransaction) {
+  private void appendStreamSnapshot(final String streamName, final long streamVersion, final State<byte[]> snapshot, final Transaction inTransaction) {
 
     if (snapshot != null) {
       final byte[] snapshotKey = Tuple.from(snapshotsSubspaceKey, streamName, streamVersion).pack();
@@ -206,77 +178,62 @@ public class FoundationDBJournalActor extends Actor implements Journal<byte[]> {
     }
   }
 
-  private <S,ST> void appendUsing(
-          final String streamName,
-          final int streamVersion,
-          final Source<S> source,
-          final ST snapshot,
-          final AppendResultInterest interest,
-          final Object object) {
+  private <S, ST> void appendUsing(final String streamName, final int streamVersion, final Source<S> source, final ST snapshot,
+          final AppendResultInterest interest, final Object object, final Metadata metadata) {
 
     wrapper.wrap(source);
 
-    appendUsing(streamName, streamVersion, wrapper.asList(), snapshot, interest, object, false);
+    appendUsing(streamName, streamVersion, wrapper.asList(), snapshot, interest, object, false, metadata);
   }
 
-  private <S,ST> void appendUsing(
-          final String streamName,
-          final int fromStreamVersion,
-          final List<Source<S>> sources,
-          final ST snapshot,
-          final AppendResultInterest interest,
-          final Object object,
-          final boolean many) {
+  private <S, ST> void appendUsing(final String streamName, final int fromStreamVersion, final List<Source<S>> sources, final ST snapshot,
+          final AppendResultInterest interest, final Object object, final boolean many, final Metadata metadata) {
 
     final List<Entry<byte[]>> entries = new ArrayList<>(sources.size());
-    final State<byte[]> state = asState(snapshot, fromStreamVersion);
+    final State<byte[]> state = asState(streamName, snapshot, fromStreamVersion, metadata);
     final Optional<ST> snapshotResult = state == null ? Optional.empty() : Optional.of(snapshot);
 
     database.run(txn -> {
       int index = 0;
       for (final Source<S> source : sources) {
-        final Tuple2<byte[],byte[]> entryKeys = entryKeysFor(entriesSubspaceKey, entriesUserVersion());
-        final Entry<byte[]> entry = asEntry(source, entryKeys._2);
+        final Tuple2<byte[], byte[]> entryKeys = entryKeysFor(entriesSubspaceKey, entriesUserVersion());
+        final Entry<byte[]> entry = asEntry(source, entryKeys._2, metadata);
         entries.add(entry);
         appendStreamEntry(entryKeys._1, entryKeys._2, streamName, fromStreamVersion + index, entry, txn);
         ++index;
       }
       appendStreamSnapshot(streamName, fromStreamVersion, state, txn);
       return Success.of(Result.Success);
-    })
-    .andThen(result -> {
-      informListener(listener, entries, state, many);
+    }).andThen(result -> {
+      dispatch(streamName, fromStreamVersion, entries, state);
       informInterest(Success.of(Result.Success), streamName, fromStreamVersion, sources, interest, object, snapshotResult, many);
       return result;
-    })
-    .otherwise(failure -> {
-      logger().log("Failed to append journal: " + name + " with: " + streamName + " : " + fromStreamVersion, failure);
-      Outcome<StorageException,Result> outcome = Failure.of(new StorageException(Result.Failure, failure.getMessage(), failure));
+    }).otherwise(failure -> {
+      logger().error("Failed to append journal: " + name + " with: " + streamName + " : " + fromStreamVersion, failure);
+      Outcome<StorageException, Result> outcome = Failure.of(new StorageException(Result.Failure, failure.getMessage(), failure));
       informInterest(outcome, streamName, fromStreamVersion, sources, interest, object, snapshotResult, many);
       return Result.Failure;
     });
   }
 
   @SuppressWarnings("unchecked")
-  private Entry<byte[]> asEntry(final Source<?> source, final byte[] versionTimestampEntryKey) {
-    final EntryAdapter<Source<?>,Entry<?>> adapter = (EntryAdapter<Source<?>,Entry<?>>) adapter(source.getClass());
-
+  private Entry<byte[]> asEntry(final Source<?> source, final byte[] versionTimestampEntryKey, final Metadata metadata) {
     final String id = KeyConverter.fromVersionTimestamp(versionTimestampEntryKey);
 
-    return adapter.toEntry(source, id).asBinaryEntry();
+    final Entry<byte[]> entry = entryAdapterProvider.asEntry(source, metadata);
+    ((BaseEntry) entry).__internal__setId(id);
+    return entry;
   }
 
   @SuppressWarnings("unchecked")
-  private <ST> State<byte[]> asState(final ST snapshot, final int streamVersion) {
+  private <ST> State<byte[]> asState(final String streamName, final ST snapshot, final int streamVersion, final Metadata metadata) {
     if (snapshot != null) {
-      final StateAdapter<ST,State<byte[]>> adapter = (StateAdapter<ST,State<byte[]>>) stateAdapters.get(snapshot.getClass());
-      final State<byte[]> state = adapter.toRawState(snapshot, streamVersion);
-      return state;
+      return stateAdapterProvider.asRaw(streamName, snapshot, streamVersion, metadata);
     }
     return null;
   }
 
-  private Tuple4<Database,byte[],byte[],byte[]> initialize(final String name) throws Exception {
+  private Tuple4<Database, byte[], byte[], byte[]> initialize(final String name) throws Exception {
     final FDB fdb = FDB.selectAPIVersion(600);
     final Database database = fdb.open();
 
@@ -307,14 +264,12 @@ public class FoundationDBJournalActor extends Actor implements Journal<byte[]> {
 
   /**
    * Answer the Tuple2 of both the {@code fullEntryKey} and the {@code versionTimestampKey} segment.
+   *
    * @param subspaceKey the byte[] subspace key
-   * @param streamName the String name of the stream
    * @param userVersion the int user version
    * @return {@code Tuple2<byte[],byte[]>}
    */
-  private Tuple2<byte[],byte[]> entryKeysFor(
-          final byte[] subspaceKey,
-          final int userVersion) {
+  private Tuple2<byte[], byte[]> entryKeysFor(final byte[] subspaceKey, final int userVersion) {
 
     // NOTE: The userVersion should never be necessary as the timestamp
     // resolution on FoundationDB transactions is 1 million per second.
@@ -349,15 +304,8 @@ public class FoundationDBJournalActor extends Actor implements Journal<byte[]> {
     }
   }
 
-  private <S,ST> void informInterest(
-          final Outcome<StorageException,Result> outcome,
-          final String streamName,
-          final int fromStreamVersion,
-          final List<Source<S>> sources,
-          final AppendResultInterest interest,
-          final Object object,
-          final Optional<ST> snapshot,
-          final boolean many) {
+  private <S, ST> void informInterest(final Outcome<StorageException, Result> outcome, final String streamName, final int fromStreamVersion,
+          final List<Source<S>> sources, final AppendResultInterest interest, final Object object, final Optional<ST> snapshot, final boolean many) {
 
     if (interest != null) {
       if (many) {
@@ -368,24 +316,8 @@ public class FoundationDBJournalActor extends Actor implements Journal<byte[]> {
     }
   }
 
-  private void informListener(
-          JournalListener<byte[]> listener,
-          final List<Entry<byte[]>> entries,
-          final State<byte[]> snapshot,
-          final boolean many) {
-
-    if (many) {
-      if (snapshot != null) {
-        listener.appendedAllWith(entries, snapshot);
-      } else {
-        listener.appendedAll(entries);
-      }
-    } else {
-      if (snapshot != null) {
-        listener.appendedWith(entries.get(0), snapshot);
-      } else {
-        listener.appended(entries.get(0));
-      }
-    }
+  private void dispatch(final String streamName, final int streamVersion, final List<Entry<byte[]>> entries, final State<byte[]> snapshot) {
+    final String id = streamName + ":" + streamVersion + ":" + dispatchablesIdentityGenerator.generate().toString();
+    dispatcher.dispatch(new Dispatchable<>(id, LocalDateTime.now(), snapshot, entries));
   }
 }

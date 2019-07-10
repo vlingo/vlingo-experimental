@@ -7,14 +7,13 @@
 
 package io.vlingo.symbio.foundationdb;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import org.junit.Test;
-
 import io.vlingo.actors.testkit.TestUntil;
 import io.vlingo.symbio.Entry;
 import io.vlingo.symbio.store.journal.Stream;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class FoundationDBStreamReaderTest extends BaseFoundationDBJounralTest {
 
@@ -23,7 +22,7 @@ public class FoundationDBStreamReaderTest extends BaseFoundationDBJounralTest {
     final int sets = 30;
     final int total = KindsOfEvents * sets;
 
-    final TestUntil until = listener.untilHappenings(sets);
+    final TestUntil until = dispatcher.untilHappenings(sets);
 //long startTime1 = System.currentTimeMillis();
     appendSetsOfEvents(sets);
     until.completes();
@@ -47,13 +46,13 @@ public class FoundationDBStreamReaderTest extends BaseFoundationDBJounralTest {
         ++countOfEntries;
         switch (entryIndex % KindsOfEvents) {
         case 1:
-          assertEquals(ProductCreated.class.getName(), entry.type);
+          assertEquals(ProductCreated.class.getName(), entry.type());
           break;
         case 2:
-          assertEquals(SprintPlanned.class.getName(), entry.type);
+          assertEquals(SprintPlanned.class.getName(), entry.type());
           break;
         case 0:
-          assertEquals(BacklogItemCommitted.class.getName(), entry.type);
+          assertEquals(BacklogItemCommitted.class.getName(), entry.type());
           break;
         default:
           assertEquals("Should not be reachable.", 0, 1);
@@ -68,7 +67,7 @@ public class FoundationDBStreamReaderTest extends BaseFoundationDBJounralTest {
   public void testThatReadsFullStream() {
     final int total = 101;
 
-    final TestUntil until = listener.untilHappenings(1); // total
+    final TestUntil until = dispatcher.untilHappenings(1); // total
 long startTime1 = System.currentTimeMillis();
     //appendEvents(total);
     appendEventsBatch(total);
@@ -87,7 +86,7 @@ System.out.println("READ TIME: " + (endTime2 - startTime2));
     assertEquals(total, stream.size());
 
     final Entry<byte[]> productCreatedEntry = stream.entries.get(0);
-    assertEquals(ProductCreated.class.getName(), productCreatedEntry.type);
+    assertEquals(ProductCreated.class.getName(), productCreatedEntry.type());
     int countOfEntries = 1;
 
     for (int entryIndex = 2; entryIndex <= stream.size(); ++entryIndex) {
@@ -96,10 +95,10 @@ System.out.println("READ TIME: " + (endTime2 - startTime2));
       final int oddEvent = entryIndex % 2;
       switch (oddEvent) {
       case 0:
-        assertEquals(SprintPlanned.class.getName(), entry.type);
+        assertEquals(SprintPlanned.class.getName(), entry.type());
         break;
       case 1:
-        assertEquals(BacklogItemCommitted.class.getName(), entry.type);
+        assertEquals(BacklogItemCommitted.class.getName(), entry.type());
         break;
       default:
         assertEquals("Should not be reachable.", 0, 1);
