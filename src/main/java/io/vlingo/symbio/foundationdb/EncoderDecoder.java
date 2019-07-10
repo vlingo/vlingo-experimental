@@ -7,14 +7,14 @@
 
 package io.vlingo.symbio.foundationdb;
 
+import io.vlingo.symbio.BaseEntry;
+import io.vlingo.symbio.Entry;
+import io.vlingo.symbio.State;
+import io.vlingo.symbio.State.BinaryState;
+
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
-
-import io.vlingo.symbio.Entry;
-import io.vlingo.symbio.Entry.BinaryEntry;
-import io.vlingo.symbio.State;
-import io.vlingo.symbio.State.BinaryState;
 
 /**
  * Encoder and decoder of binary types.
@@ -26,7 +26,7 @@ public class EncoderDecoder {
     this.typeEncodings = new HashMap<>();
   }
 
-  static Entry<byte[]> decodeEntry(final byte[] encoding, final String id) throws Exception {
+  static BaseEntry.BinaryEntry decodeEntry(final byte[] encoding, final String id) throws Exception {
     return decode(encoding, id, false);
   }
 
@@ -47,7 +47,7 @@ public class EncoderDecoder {
     if (hasDataVersion) {
       return (T) new BinaryState(decodedId, Class.forName(typeName), typeVersion, data, buffer.getInt());
     }
-    return (T) new BinaryEntry(decodedId, Class.forName(typeName), typeVersion, data);
+    return (T) new BaseEntry.BinaryEntry(decodedId, Class.forName(typeName), typeVersion, data);
   }
 
   private static String decodeId(final String id, final ByteBuffer buffer) {
@@ -69,7 +69,7 @@ public class EncoderDecoder {
   }
 
   byte[] encode(final Entry<byte[]> entry) {
-    return encode(entry.id(), entry.type, entry.typeVersion, entry.entryData, -1);
+    return encode(entry.id(), entry.type(), entry.typeVersion(), entry.entryData(), -1);
   }
 
   byte[] encode(final State<byte[]> state) {

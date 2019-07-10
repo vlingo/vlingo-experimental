@@ -12,7 +12,7 @@ import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.State.BinaryState;
 import io.vlingo.symbio.StateAdapter;
 
-public class TestTypeStateAdapter implements StateAdapter<TestType,BinaryState> {
+public class TestTypeStateAdapter implements StateAdapter<TestType, BinaryState> {
 
   @Override
   public int typeVersion() {
@@ -25,8 +25,13 @@ public class TestTypeStateAdapter implements StateAdapter<TestType,BinaryState> 
   }
 
   @Override
+  public <ST> ST fromRawState(final BinaryState raw, final Class<ST> stateType) {
+    return JsonSerialization.deserialized(new String(raw.data), stateType);
+  }
+
+  @Override
   public BinaryState toRawState(final TestType state, final int stateVersion, final Metadata metadata) {
     final String serialization = JsonSerialization.serialized(state);
-    return new BinaryState(BinaryState.NoOp, TestType.class, typeVersion(), serialization.getBytes(), stateVersion, Metadata.nullMetadata());
+    return new BinaryState(BinaryState.NoOp, TestType.class, typeVersion(), serialization.getBytes(), stateVersion, metadata);
   }
 }

@@ -8,24 +8,25 @@
 package io.vlingo.symbio.foundationdb;
 
 import io.vlingo.common.serialization.JsonSerialization;
-import io.vlingo.symbio.Entry.BinaryEntry;
+import io.vlingo.symbio.BaseEntry.BinaryEntry;
 import io.vlingo.symbio.EntryAdapter;
+import io.vlingo.symbio.Metadata;
 
-public class ProductCreatedEntryAdapter implements EntryAdapter<ProductCreated,BinaryEntry> {
+public class ProductCreatedEntryAdapter implements EntryAdapter<ProductCreated, BinaryEntry> {
 
   @Override
   public ProductCreated fromEntry(final BinaryEntry entry) {
-    return JsonSerialization.deserialized(new String(entry.entryData), ProductCreated.class);
+    return JsonSerialization.deserialized(new String(entry.entryData()), ProductCreated.class);
   }
 
   @Override
-  public BinaryEntry toEntry(final ProductCreated source) {
-    return toEntry(source, source.productId);
+  public BinaryEntry toEntry(final ProductCreated source, final Metadata metadata) {
+    return toEntry(source, source.productId, metadata);
   }
 
   @Override
-  public BinaryEntry toEntry(final ProductCreated source, final String id) {
+  public BinaryEntry toEntry(final ProductCreated source, final String id, final Metadata metadata) {
     final String serialization = JsonSerialization.serialized(source);
-    return new BinaryEntry(id, ProductCreated.class, 1, serialization.getBytes());
+    return new BinaryEntry(id, ProductCreated.class, 1, serialization.getBytes(), metadata);
   }
 }

@@ -7,22 +7,21 @@
 
 package io.vlingo.symbio.foundationdb;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.util.Arrays;
-
-import org.junit.Test;
-
 import io.vlingo.actors.testkit.TestUntil;
 import io.vlingo.symbio.Entry;
 import io.vlingo.symbio.State.BinaryState;
+import org.junit.Test;
+
+import java.util.Arrays;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class FoundationDBJounralTest extends BaseFoundationDBJounralTest {
 
   @Test
   public void testThatJounralAppendsOne() {
-    final TestUntil until = listener.untilHappenings(1);
+    final TestUntil until = dispatcher.untilHappenings(1);
 
     final ProductCreated productCreated = new ProductCreated("product1");
 
@@ -30,18 +29,18 @@ public class FoundationDBJounralTest extends BaseFoundationDBJounralTest {
 
     until.completes();
 
-    assertEquals(1, listener.entryElements());
+    assertEquals(1, dispatcher.entryElements());
 
-    final Entry<byte[]> entry = listener.entry(0);
+    final Entry<byte[]> entry = dispatcher.entry(0);
 
     assertNotNull(entry);
     assertNotNull(entry.id());
-    assertEquals(ProductCreated.class.getName(), entry.type);
+    assertEquals(ProductCreated.class.getName(), entry.type());
   }
 
   @Test
   public void testThatJounralAppendsOneWithSnapshot() {
-    final TestUntil until = listener.untilHappenings(1);
+    final TestUntil until = dispatcher.untilHappenings(1);
 
     final ProductCreated productCreated = new ProductCreated("product2");
 
@@ -51,15 +50,15 @@ public class FoundationDBJounralTest extends BaseFoundationDBJounralTest {
 
     until.completes();
 
-    assertEquals(1, listener.entryElements());
+    assertEquals(1, dispatcher.entryElements());
 
-    final Entry<byte[]> entry = listener.entry(0);
+    final Entry<byte[]> entry = dispatcher.entry(0);
 
     assertNotNull(entry);
     assertNotNull(entry.id());
-    assertEquals(ProductCreated.class.getName(), entry.type);
+    assertEquals(ProductCreated.class.getName(), entry.type());
 
-    final BinaryState snapshot = listener.snapshot();
+    final BinaryState snapshot = dispatcher.snapshot();
     assertNotNull(snapshot);
     final TestTypeStateAdapter adapter = new TestTypeStateAdapter();
     final TestType testType2 = adapter.fromRawState(snapshot);
@@ -70,7 +69,7 @@ public class FoundationDBJounralTest extends BaseFoundationDBJounralTest {
 
   @Test
   public void testThatJounralAppendsMultiple() {
-    final TestUntil until = listener.untilHappenings(1);
+    final TestUntil until = dispatcher.untilHappenings(1);
 
     final ProductCreated productCreated = new ProductCreated("product1");
     final SprintPlanned sprintPlanned = new SprintPlanned("sprint1");
@@ -80,24 +79,24 @@ public class FoundationDBJounralTest extends BaseFoundationDBJounralTest {
 
     until.completes();
 
-    assertEquals(3, listener.entryElements());
+    assertEquals(3, dispatcher.entryElements());
 
-    final Entry<byte[]> entry1 = listener.entry(0);
+    final Entry<byte[]> entry1 = dispatcher.entry(0);
     assertNotNull(entry1.id());
-    assertEquals(ProductCreated.class.getName(), entry1.type);
+    assertEquals(ProductCreated.class.getName(), entry1.type());
 
-    final Entry<byte[]> entry2 = listener.entry(1);
+    final Entry<byte[]> entry2 = dispatcher.entry(1);
     assertNotNull(entry2.id());
-    assertEquals(SprintPlanned.class.getName(), entry2.type);
+    assertEquals(SprintPlanned.class.getName(), entry2.type());
 
-    final Entry<byte[]> entry3 = listener.entry(2);
+    final Entry<byte[]> entry3 = dispatcher.entry(2);
     assertNotNull(entry3.id());
-    assertEquals(BacklogItemCommitted.class.getName(), entry3.type);
+    assertEquals(BacklogItemCommitted.class.getName(), entry3.type());
   }
 
   @Test
   public void testThatJounralAppendsMultipleWithSnapshot() {
-    final TestUntil until = listener.untilHappenings(1);
+    final TestUntil until = dispatcher.untilHappenings(1);
 
     final ProductCreated productCreated = new ProductCreated("product3");
     final SprintPlanned sprintPlanned = new SprintPlanned("sprint3");
@@ -109,21 +108,21 @@ public class FoundationDBJounralTest extends BaseFoundationDBJounralTest {
 
     until.completes();
 
-    assertEquals(3, listener.entryElements());
+    assertEquals(3, dispatcher.entryElements());
 
-    final Entry<byte[]> entry1 = listener.entry(0);
+    final Entry<byte[]> entry1 = dispatcher.entry(0);
     assertNotNull(entry1.id());
-    assertEquals(ProductCreated.class.getName(), entry1.type);
+    assertEquals(ProductCreated.class.getName(), entry1.type());
 
-    final Entry<byte[]> entry2 = listener.entry(1);
+    final Entry<byte[]> entry2 = dispatcher.entry(1);
     assertNotNull(entry2.id());
-    assertEquals(SprintPlanned.class.getName(), entry2.type);
+    assertEquals(SprintPlanned.class.getName(), entry2.type());
 
-    final Entry<byte[]> entry3 = listener.entry(2);
+    final Entry<byte[]> entry3 = dispatcher.entry(2);
     assertNotNull(entry3.id());
-    assertEquals(BacklogItemCommitted.class.getName(), entry3.type);
+    assertEquals(BacklogItemCommitted.class.getName(), entry3.type());
 
-    final BinaryState snapshot = listener.snapshot();
+    final BinaryState snapshot = dispatcher.snapshot();
     assertNotNull(snapshot);
     final TestTypeStateAdapter adapter = new TestTypeStateAdapter();
     final TestType testType2 = adapter.fromRawState(snapshot);

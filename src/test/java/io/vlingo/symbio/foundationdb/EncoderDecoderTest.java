@@ -7,16 +7,15 @@
 
 package io.vlingo.symbio.foundationdb;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-
-import org.junit.Test;
-
 import io.vlingo.common.serialization.JsonSerialization;
+import io.vlingo.symbio.BaseEntry.BinaryEntry;
 import io.vlingo.symbio.Entry;
-import io.vlingo.symbio.Entry.BinaryEntry;
 import io.vlingo.symbio.State;
 import io.vlingo.symbio.State.BinaryState;
+import org.junit.Test;
+
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 public class EncoderDecoderTest {
 
@@ -34,7 +33,7 @@ public class EncoderDecoderTest {
     final Entry<byte[]> entry2 = EncoderDecoder.decodeEntry(encoding1, hexId);
     assertEquals(hexId, entry2.id());
     assertEquals(entry1.id(), entry2.id());
-    assertArrayEquals(entry1.entryData, entry2.entryData);
+    assertArrayEquals(entry1.entryData(), entry2.entryData());
   }
 
   @Test

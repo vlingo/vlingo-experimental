@@ -8,24 +8,25 @@
 package io.vlingo.symbio.foundationdb;
 
 import io.vlingo.common.serialization.JsonSerialization;
-import io.vlingo.symbio.Entry.BinaryEntry;
+import io.vlingo.symbio.BaseEntry.BinaryEntry;
 import io.vlingo.symbio.EntryAdapter;
+import io.vlingo.symbio.Metadata;
 
-public class BacklogItemCommittedEntryAdapter implements EntryAdapter<BacklogItemCommitted,BinaryEntry> {
+public class BacklogItemCommittedEntryAdapter implements EntryAdapter<BacklogItemCommitted, BinaryEntry> {
 
   @Override
   public BacklogItemCommitted fromEntry(final BinaryEntry entry) {
-    return JsonSerialization.deserialized(new String(entry.entryData), BacklogItemCommitted.class);
+    return JsonSerialization.deserialized(new String(entry.entryData()), BacklogItemCommitted.class);
   }
 
   @Override
-  public BinaryEntry toEntry(final BacklogItemCommitted source) {
-    return toEntry(source, source.backlogItemId);
+  public BinaryEntry toEntry(final BacklogItemCommitted source, final Metadata metadata) {
+    return toEntry(source, source.backlogItemId, metadata);
   }
 
   @Override
-  public BinaryEntry toEntry(final BacklogItemCommitted source, final String id) {
+  public BinaryEntry toEntry(final BacklogItemCommitted source, final String id, final Metadata metadata) {
     final String serialization = JsonSerialization.serialized(source);
-    return new BinaryEntry(id, BacklogItemCommitted.class, 1, serialization.getBytes());
+    return new BinaryEntry(id, BacklogItemCommitted.class, 1, serialization.getBytes(), metadata);
   }
 }

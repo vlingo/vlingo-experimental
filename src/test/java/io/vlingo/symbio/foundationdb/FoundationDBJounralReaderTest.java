@@ -7,16 +7,15 @@
 
 package io.vlingo.symbio.foundationdb;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import io.vlingo.actors.testkit.TestUntil;
+import io.vlingo.symbio.Entry;
+import org.junit.Test;
 
 import java.util.List;
 
-import org.junit.Test;
-
-import io.vlingo.actors.testkit.TestUntil;
-import io.vlingo.symbio.Entry;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 public class FoundationDBJounralReaderTest extends BaseFoundationDBJounralTest {
 
@@ -25,7 +24,7 @@ public class FoundationDBJounralReaderTest extends BaseFoundationDBJounralTest {
     final int sets = 10;
     final int total = KindsOfEvents * sets;
 
-    final TestUntil until = listener.untilHappenings(sets);
+    final TestUntil until = dispatcher.untilHappenings(sets);
 
     appendSetsOfEvents(sets);
 
@@ -39,13 +38,13 @@ public class FoundationDBJounralReaderTest extends BaseFoundationDBJounralTest {
 
       switch (index % KindsOfEvents) {
       case 1:
-        assertEquals(ProductCreated.class.getName(), entry.type);
+        assertEquals(ProductCreated.class.getName(), entry.type());
         break;
       case 2:
-        assertEquals(SprintPlanned.class.getName(), entry.type);
+        assertEquals(SprintPlanned.class.getName(), entry.type());
         break;
       case 0:
-        assertEquals(BacklogItemCommitted.class.getName(), entry.type);
+        assertEquals(BacklogItemCommitted.class.getName(), entry.type());
         break;
       default:
         assertEquals("Should not be reachable.", 0, 1);
@@ -62,7 +61,7 @@ public class FoundationDBJounralReaderTest extends BaseFoundationDBJounralTest {
     final int sets = 20;
     final int total = KindsOfEvents * sets;
 
-    final TestUntil until = listener.untilHappenings(sets);
+    final TestUntil until = dispatcher.untilHappenings(sets);
 
     appendSetsOfEvents(sets);
 
@@ -77,13 +76,13 @@ public class FoundationDBJounralReaderTest extends BaseFoundationDBJounralTest {
 
       switch (index % KindsOfEvents) {
       case 1:
-        assertEquals(ProductCreated.class.getName(), entry.type);
+        assertEquals(ProductCreated.class.getName(), entry.type());
         break;
       case 2:
-        assertEquals(SprintPlanned.class.getName(), entry.type);
+        assertEquals(SprintPlanned.class.getName(), entry.type());
         break;
       case 0:
-        assertEquals(BacklogItemCommitted.class.getName(), entry.type);
+        assertEquals(BacklogItemCommitted.class.getName(), entry.type());
         break;
       default:
         assertEquals("Should not be reachable.", 0, 1);

@@ -8,24 +8,25 @@
 package io.vlingo.symbio.foundationdb;
 
 import io.vlingo.common.serialization.JsonSerialization;
-import io.vlingo.symbio.Entry.BinaryEntry;
+import io.vlingo.symbio.BaseEntry.BinaryEntry;
 import io.vlingo.symbio.EntryAdapter;
+import io.vlingo.symbio.Metadata;
 
-public class SprintPlannedEntryAdapter implements EntryAdapter<SprintPlanned,BinaryEntry> {
+public class SprintPlannedEntryAdapter implements EntryAdapter<SprintPlanned, BinaryEntry> {
 
   @Override
   public SprintPlanned fromEntry(final BinaryEntry entry) {
-    return JsonSerialization.deserialized(new String(entry.entryData), SprintPlanned.class);
+    return JsonSerialization.deserialized(new String(entry.entryData()), SprintPlanned.class);
   }
 
   @Override
-  public BinaryEntry toEntry(final SprintPlanned source) {
-    return toEntry(source, source.sprintId);
+  public BinaryEntry toEntry(final SprintPlanned source, final Metadata metadata) {
+    return toEntry(source, source.sprintId, metadata);
   }
 
   @Override
-  public BinaryEntry toEntry(final SprintPlanned source, final String id) {
+  public BinaryEntry toEntry(final SprintPlanned source, final String id, final Metadata metadata) {
     final String serialization = JsonSerialization.serialized(source);
-    return new BinaryEntry(id, SprintPlanned.class, 1, serialization.getBytes());
+    return new BinaryEntry(id, SprintPlanned.class, 1, serialization.getBytes(), metadata);
   }
 }
