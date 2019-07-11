@@ -7,15 +7,15 @@
 
 package io.vlingo.symbio.foundationdb;
 
-import io.vlingo.actors.testkit.TestUntil;
-import io.vlingo.symbio.Entry;
-import org.junit.Test;
-
-import java.util.List;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+
+import java.util.List;
+
+import org.junit.Test;
+
+import io.vlingo.symbio.Entry;
 
 public class FoundationDBJounralReaderTest extends BaseFoundationDBJounralTest {
 
@@ -24,11 +24,11 @@ public class FoundationDBJounralReaderTest extends BaseFoundationDBJounralTest {
     final int sets = 10;
     final int total = KindsOfEvents * sets;
 
-    final TestUntil until = dispatcher.untilHappenings(sets);
+    dispatcher.afterCompleting(sets);
 
     appendSetsOfEvents(sets);
 
-    until.completes();
+    assertEquals(total, dispatcher.entryElements());
 
     int index = 1;
     for ( ; index <= total; ++index) {
@@ -61,11 +61,11 @@ public class FoundationDBJounralReaderTest extends BaseFoundationDBJounralTest {
     final int sets = 20;
     final int total = KindsOfEvents * sets;
 
-    final TestUntil until = dispatcher.untilHappenings(sets);
+    dispatcher.afterCompleting(sets);
 
     appendSetsOfEvents(sets);
 
-    until.completes();
+    assertEquals(total, dispatcher.entryElements());
 
     final List<Entry<byte[]>> entries = journalReader.readNext(total).await();
     int index = 1;
