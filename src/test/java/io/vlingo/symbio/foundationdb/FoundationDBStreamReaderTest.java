@@ -7,13 +7,13 @@
 
 package io.vlingo.symbio.foundationdb;
 
-import io.vlingo.actors.testkit.TestUntil;
-import io.vlingo.symbio.Entry;
-import io.vlingo.symbio.store.journal.Stream;
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+
+import org.junit.Test;
+
+import io.vlingo.symbio.Entry;
+import io.vlingo.symbio.store.journal.Stream;
 
 public class FoundationDBStreamReaderTest extends BaseFoundationDBJounralTest {
 
@@ -22,10 +22,10 @@ public class FoundationDBStreamReaderTest extends BaseFoundationDBJounralTest {
     final int sets = 30;
     final int total = KindsOfEvents * sets;
 
-    final TestUntil until = dispatcher.untilHappenings(sets);
+    dispatcher.afterCompleting(sets);
 //long startTime1 = System.currentTimeMillis();
     appendSetsOfEvents(sets);
-    until.completes();
+    assertEquals(total, dispatcher.entryElements());
 //long endTime1 = System.currentTimeMillis();
 //System.out.println("APPEND TIME: " + (endTime1 - startTime1));
 
@@ -67,11 +67,11 @@ public class FoundationDBStreamReaderTest extends BaseFoundationDBJounralTest {
   public void testThatReadsFullStream() {
     final int total = 101;
 
-    final TestUntil until = dispatcher.untilHappenings(1); // total
+    dispatcher.afterCompleting(1); // total
 long startTime1 = System.currentTimeMillis();
     //appendEvents(total);
     appendEventsBatch(total);
-    until.completes();
+    assertEquals(total, dispatcher.entryElements());
 long endTime1 = System.currentTimeMillis();
 System.out.println("APPEND TIME: " + (endTime1 - startTime1));
 
