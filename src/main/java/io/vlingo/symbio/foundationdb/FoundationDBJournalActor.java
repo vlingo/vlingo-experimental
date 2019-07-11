@@ -7,6 +7,15 @@
 
 package io.vlingo.symbio.foundationdb;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+
 import com.apple.foundationdb.Database;
 import com.apple.foundationdb.FDB;
 import com.apple.foundationdb.MutationType;
@@ -17,6 +26,7 @@ import com.apple.foundationdb.directory.DirectorySubspace;
 import com.apple.foundationdb.subspace.Subspace;
 import com.apple.foundationdb.tuple.Tuple;
 import com.apple.foundationdb.tuple.Versionstamp;
+
 import io.vlingo.actors.Actor;
 import io.vlingo.actors.Definition;
 import io.vlingo.common.Completes;
@@ -41,15 +51,6 @@ import io.vlingo.symbio.store.dispatch.Dispatcher;
 import io.vlingo.symbio.store.journal.Journal;
 import io.vlingo.symbio.store.journal.JournalReader;
 import io.vlingo.symbio.store.journal.StreamReader;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Actor-based {@code Journal} over FoundationDB.
@@ -216,7 +217,7 @@ public class FoundationDBJournalActor extends Actor implements Journal<byte[]> {
     });
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings("rawtypes")
   private Entry<byte[]> asEntry(final Source<?> source, final byte[] versionTimestampEntryKey, final Metadata metadata) {
     final String id = KeyConverter.fromVersionTimestamp(versionTimestampEntryKey);
 
@@ -225,7 +226,6 @@ public class FoundationDBJournalActor extends Actor implements Journal<byte[]> {
     return entry;
   }
 
-  @SuppressWarnings("unchecked")
   private <ST> State<byte[]> asState(final String streamName, final ST snapshot, final int streamVersion, final Metadata metadata) {
     if (snapshot != null) {
       return stateAdapterProvider.asRaw(streamName, snapshot, streamVersion, metadata);
