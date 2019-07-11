@@ -7,7 +7,11 @@
 
 package io.vlingo.symbio.foundationdb;
 
-import io.vlingo.actors.testkit.TestUntil;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+
+import io.vlingo.actors.testkit.AccessSafely;
 import io.vlingo.symbio.Entry;
 import io.vlingo.symbio.State;
 import io.vlingo.symbio.State.BinaryState;
@@ -15,15 +19,10 @@ import io.vlingo.symbio.store.dispatch.Dispatchable;
 import io.vlingo.symbio.store.dispatch.Dispatcher;
 import io.vlingo.symbio.store.dispatch.DispatcherControl;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
-
 public class MockJournalDispatcher implements Dispatcher<Dispatchable<Entry<byte[]>, State<byte[]>>> {
-  private final Object lock = new Object();
   private List<Entry<byte[]>> entries = new ArrayList<>();
   private AtomicReference<BinaryState> snapshot = new AtomicReference<>();
-  private TestUntil until;
+  private AccessSafely access = AccessSafely.afterCompleting(0);
 
   @Override
   public void controlWith(final DispatcherControl control) {
@@ -32,38 +31,32 @@ public class MockJournalDispatcher implements Dispatcher<Dispatchable<Entry<byte
 
   @Override
   public void dispatch(final Dispatchable<Entry<byte[]>, State<byte[]>> dispatchable) {
-    synchronized (lock) {
-      this.entries.addAll(dispatchable.entries());
-      dispatchable.state().ifPresent(state -> {
-        this.snapshot.set(state.asBinaryState());
-      });
-      this.until.happened();
-    }
+    access.writeUsing("entries", dispatchable.entries());
+    dispatchable.state().ifPresent(state -> {
+      access.writeUsing("state", state.asBinaryState());
+    });
   }
 
   public Entry<byte[]> entry(final int index) {
-    synchronized (lock) {
-      return entries.get(index);
-    }
+    return access.readFrom("entry", index);
   }
 
   public int entryElements() {
-    synchronized (lock) {
-      return entries.size();
-    }
+    return access.readFrom("entriesSize");
   }
 
   public BinaryState snapshot() {
-    synchronized (lock) {
-      return snapshot.get();
-    }
+    return access.readFrom("snapshot");
   }
 
-  public TestUntil untilHappenings(final int times) {
-    synchronized (lock) {
-      this.until = TestUntil.happenings(times);
-      return this.until;
-    }
-  }
+  public AccessSafely afterCompleting(final int times) {
+    access = AccessSafely.afterCompleting(times);
+    access.writingWith("entries", (List<Entry<byte[]>> e) -> entries.addAll(e));
+    access.writingWith("state", (State<byte[]> state) -> snapshot.set(state.asBinaryState()));
+    access.readingWith("entry", (Integer index) -> entries.get(index));
+    access.readingWith("entriesSize", () -> entries.size());
+    access.readingWith("snapshot", () -> snapshot.get());
 
+    return access;
+  }
 }
