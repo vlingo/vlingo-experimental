@@ -7,27 +7,25 @@
 
 package io.vlingo.symbio.foundationdb;
 
-import io.vlingo.actors.testkit.TestUntil;
-import io.vlingo.symbio.Entry;
-import io.vlingo.symbio.State.BinaryState;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.Arrays;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import org.junit.Test;
+
+import io.vlingo.symbio.Entry;
+import io.vlingo.symbio.State.BinaryState;
 
 public class FoundationDBJounralTest extends BaseFoundationDBJounralTest {
 
   @Test
   public void testThatJounralAppendsOne() {
-    final TestUntil until = dispatcher.untilHappenings(1);
+    dispatcher.afterCompleting(1);
 
     final ProductCreated productCreated = new ProductCreated("product1");
 
     journal.append(productCreated.productId, 1, productCreated, null, null);
-
-    until.completes();
 
     assertEquals(1, dispatcher.entryElements());
 
@@ -40,15 +38,13 @@ public class FoundationDBJounralTest extends BaseFoundationDBJounralTest {
 
   @Test
   public void testThatJounralAppendsOneWithSnapshot() {
-    final TestUntil until = dispatcher.untilHappenings(1);
+    dispatcher.afterCompleting(2);
 
     final ProductCreated productCreated = new ProductCreated("product2");
 
     final TestType testType = new TestType("product2", "Product2", 1);
 
     journal.appendWith(productCreated.productId, 1, productCreated, testType, null, null);
-
-    until.completes();
 
     assertEquals(1, dispatcher.entryElements());
 
@@ -69,15 +65,13 @@ public class FoundationDBJounralTest extends BaseFoundationDBJounralTest {
 
   @Test
   public void testThatJounralAppendsMultiple() {
-    final TestUntil until = dispatcher.untilHappenings(1);
+    dispatcher.afterCompleting(1);
 
     final ProductCreated productCreated = new ProductCreated("product1");
     final SprintPlanned sprintPlanned = new SprintPlanned("sprint1");
     final BacklogItemCommitted backlogItemCommitted = new BacklogItemCommitted("backlogItem1", "sprint1");
 
     journal.appendAll(productCreated.productId, 1, Arrays.asList(productCreated, sprintPlanned, backlogItemCommitted), null, null);
-
-    until.completes();
 
     assertEquals(3, dispatcher.entryElements());
 
@@ -96,7 +90,7 @@ public class FoundationDBJounralTest extends BaseFoundationDBJounralTest {
 
   @Test
   public void testThatJounralAppendsMultipleWithSnapshot() {
-    final TestUntil until = dispatcher.untilHappenings(1);
+    dispatcher.afterCompleting(2);
 
     final ProductCreated productCreated = new ProductCreated("product3");
     final SprintPlanned sprintPlanned = new SprintPlanned("sprint3");
@@ -105,8 +99,6 @@ public class FoundationDBJounralTest extends BaseFoundationDBJounralTest {
     final TestType testType = new TestType("product3", "Product3", 1);
 
     journal.appendAllWith(productCreated.productId, 1, Arrays.asList(productCreated, sprintPlanned, backlogItemCommitted), testType, null, null);
-
-    until.completes();
 
     assertEquals(3, dispatcher.entryElements());
 
