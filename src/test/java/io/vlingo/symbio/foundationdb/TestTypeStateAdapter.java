@@ -31,7 +31,12 @@ public class TestTypeStateAdapter implements StateAdapter<TestType, BinaryState>
 
   @Override
   public BinaryState toRawState(final TestType state, final int stateVersion, final Metadata metadata) {
+    return this.toRawState(state.id, state, stateVersion, metadata);
+  }
+
+  @Override
+  public BinaryState toRawState(final String id, final TestType state, final int stateVersion, final Metadata metadata) {
     final String serialization = JsonSerialization.serialized(state);
-    return new BinaryState(BinaryState.NoOp, TestType.class, typeVersion(), serialization.getBytes(), stateVersion, metadata);
+    return new BinaryState(id, TestType.class, typeVersion(), serialization.getBytes(), stateVersion, metadata);
   }
 }
