@@ -7,19 +7,20 @@
 
 package io.vlingo.symbio.foundationdb;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import com.apple.foundationdb.Database;
 import com.apple.foundationdb.FDB;
 import com.apple.foundationdb.KeySelector;
 import com.apple.foundationdb.KeyValue;
 import com.apple.foundationdb.tuple.Tuple;
+
 import io.vlingo.actors.Actor;
 import io.vlingo.common.Completes;
 import io.vlingo.symbio.BaseEntry.BinaryEntry;
 import io.vlingo.symbio.store.journal.JournalReader;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Actor-based {@code JournalReader} over FoundationDB.
@@ -105,6 +106,14 @@ public class FoundationDBJournalReaderActor extends Actor implements JournalRead
       break;
     }
     return completes().with(KeyConverter.fromVersionTimestamp(currentId));
+  }
+
+  @Override
+  public Completes<Long> size() {
+    // unsupported:
+    // https://forums.foundationdb.org/t/getting-the-number-of-key-value-pairs/189
+
+    return completes().with(-1L);
   }
 
   private Database database() {
