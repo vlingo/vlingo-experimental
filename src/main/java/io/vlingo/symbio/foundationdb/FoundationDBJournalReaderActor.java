@@ -68,6 +68,15 @@ public class FoundationDBJournalReaderActor extends Actor implements JournalRead
   }
 
   /*
+   * @see io.vlingo.symbio.store.EntryReader#readNext(java.lang.String)
+   */
+  @Override
+  public Completes<BinaryEntry> readNext(final String fromId) {
+    seekTo(fromId);
+    return readNext();
+  }
+
+  /*
    * @see io.vlingo.symbio.store.journal.JournalReader#readNext(int)
    */
   @Override
@@ -76,6 +85,15 @@ public class FoundationDBJournalReaderActor extends Actor implements JournalRead
     final KeySelector end = begin.add(maximumEntries);
     final List<BinaryEntry> entries = readFromTo(begin, end, maximumEntries);
     return completes().with(entries);
+  }
+
+  /*
+   * @see io.vlingo.symbio.store.EntryReader#readNext(java.lang.String, int)
+   */
+  @Override
+  public Completes<List<BinaryEntry>> readNext(final String fromId, final int maximumEntries) {
+    seekTo(fromId);
+    return readNext(maximumEntries);
   }
 
   /*
