@@ -1,5 +1,6 @@
 # vlingo-symbio-foundationdb
- Implementation of vlingo-symbio for FoundationDB.
+
+The vlingo/PLATFORM implementation of vlingo/symbio for FoundationDB (currently experimental).
 
 ## Installing FoundationDB
 
