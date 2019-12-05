@@ -20,6 +20,12 @@ public class BacklogItemCommittedEntryAdapter implements EntryAdapter<BacklogIte
   }
 
   @Override
+  public BinaryEntry toEntry(final BacklogItemCommitted source, final int version, final String id, final Metadata metadata) {
+    final String serialization = JsonSerialization.serialized(source);
+    return new BinaryEntry(id, BacklogItemCommitted.class, 1, serialization.getBytes(), version, metadata);
+  }
+
+  @Override
   public BinaryEntry toEntry(final BacklogItemCommitted source, final Metadata metadata) {
     return toEntry(source, source.backlogItemId, metadata);
   }

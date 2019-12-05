@@ -28,6 +28,7 @@ import com.apple.foundationdb.tuple.Tuple;
 import com.apple.foundationdb.tuple.Versionstamp;
 
 import io.vlingo.actors.Actor;
+import io.vlingo.actors.ActorInstantiator;
 import io.vlingo.actors.Definition;
 import io.vlingo.common.Completes;
 import io.vlingo.common.Failure;
@@ -44,6 +45,8 @@ import io.vlingo.symbio.Metadata;
 import io.vlingo.symbio.Source;
 import io.vlingo.symbio.State;
 import io.vlingo.symbio.StateAdapterProvider;
+import io.vlingo.symbio.foundationdb.FoundationDBJournalReaderActor.FoundationDBJournalReaderInstantiator;
+import io.vlingo.symbio.foundationdb.FoundationDBStreamReaderActor.FoundationDBStreamReaderInstantiator;
 import io.vlingo.symbio.store.Result;
 import io.vlingo.symbio.store.StorageException;
 import io.vlingo.symbio.store.dispatch.Dispatchable;
@@ -136,8 +139,8 @@ public class FoundationDBJournalActor extends Actor implements Journal<byte[]> {
   public Completes<JournalReader<BaseEntry.BinaryEntry>> journalReader(final String name) {
     JournalReader<BaseEntry.BinaryEntry> reader = journalReaders.get(name);
     if (reader == null) {
-      final List<Object> parameters = Definition.parameters(name, entriesSubspaceKey);
-      reader = childActorFor(JournalReader.class, Definition.has(FoundationDBJournalReaderActor.class, parameters));
+      final ActorInstantiator<?> instantiator = new FoundationDBJournalReaderInstantiator(name, entriesSubspaceKey);
+      reader = childActorFor(JournalReader.class, Definition.has(FoundationDBJournalReaderActor.class, instantiator));
       journalReaders.put(name, reader);
     }
     return completes().with(reader);
@@ -151,8 +154,8 @@ public class FoundationDBJournalActor extends Actor implements Journal<byte[]> {
   public Completes<StreamReader<byte[]>> streamReader(final String name) {
     StreamReader<byte[]> reader = streamReaders.get(name);
     if (reader == null) {
-      final List<Object> parameters = Definition.parameters(name, entriesSubspaceKey, streamsSubspaceKey, snapshotsSubspaceKey);
-      reader = childActorFor(StreamReader.class, Definition.has(FoundationDBStreamReaderActor.class, parameters));
+      final ActorInstantiator<?> instantiator = new FoundationDBStreamReaderInstantiator(name, entriesSubspaceKey, streamsSubspaceKey, snapshotsSubspaceKey);
+      reader = childActorFor(StreamReader.class, Definition.has(FoundationDBStreamReaderActor.class, instantiator));
       streamReaders.put(name, reader);
     }
     return completes().with(reader);

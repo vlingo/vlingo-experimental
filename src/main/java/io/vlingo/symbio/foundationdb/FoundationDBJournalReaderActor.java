@@ -18,6 +18,7 @@ import com.apple.foundationdb.KeyValue;
 import com.apple.foundationdb.tuple.Tuple;
 
 import io.vlingo.actors.Actor;
+import io.vlingo.actors.ActorInstantiator;
 import io.vlingo.common.Completes;
 import io.vlingo.symbio.BaseEntry.BinaryEntry;
 import io.vlingo.symbio.store.journal.JournalReader;
@@ -208,6 +209,28 @@ public class FoundationDBJournalReaderActor extends Actor implements JournalRead
     } catch (Exception e) {
       fastForward();
       return false;
+    }
+  }
+
+  public static class FoundationDBJournalReaderInstantiator implements ActorInstantiator<FoundationDBJournalReaderActor> {
+    private final String name;
+    private final byte[] entriesSubspaceKey;
+
+    public FoundationDBJournalReaderInstantiator(
+            final String name,
+            final byte[] entriesSubspaceKey) {
+      this.name = name;
+      this.entriesSubspaceKey = entriesSubspaceKey;
+    }
+
+    @Override
+    public FoundationDBJournalReaderActor instantiate() {
+      return new FoundationDBJournalReaderActor(name, entriesSubspaceKey);
+    }
+
+    @Override
+    public Class<FoundationDBJournalReaderActor> type() {
+      return FoundationDBJournalReaderActor.class;
     }
   }
 }

@@ -20,6 +20,12 @@ public class ProductCreatedEntryAdapter implements EntryAdapter<ProductCreated, 
   }
 
   @Override
+  public BinaryEntry toEntry(final ProductCreated source, final int version, final String id, final Metadata metadata) {
+    final String serialization = JsonSerialization.serialized(source);
+    return new BinaryEntry(id, ProductCreated.class, 1, serialization.getBytes(), version, metadata);
+  }
+
+  @Override
   public BinaryEntry toEntry(final ProductCreated source, final Metadata metadata) {
     return toEntry(source, source.productId, metadata);
   }

@@ -7,21 +7,23 @@
 
 package io.vlingo.symbio.foundationdb;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.apple.foundationdb.Database;
 import com.apple.foundationdb.FDB;
 import com.apple.foundationdb.KeySelector;
 import com.apple.foundationdb.KeyValue;
 import com.apple.foundationdb.ReadTransaction;
 import com.apple.foundationdb.tuple.Tuple;
+
 import io.vlingo.actors.Actor;
+import io.vlingo.actors.ActorInstantiator;
 import io.vlingo.common.Completes;
 import io.vlingo.symbio.BaseEntry;
 import io.vlingo.symbio.State;
 import io.vlingo.symbio.store.journal.Stream;
 import io.vlingo.symbio.store.journal.StreamReader;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Actor-based {@code StreamReader} for the {@code Journal} over FoundationDB.
@@ -201,5 +203,33 @@ public class FoundationDBStreamReaderActor extends Actor implements StreamReader
       entries.add(entry);
     }
     return entries;
+  }
+
+  public static class FoundationDBStreamReaderInstantiator implements ActorInstantiator<FoundationDBStreamReaderActor> {
+    private final String name;
+    private final byte[] entriesSubspaceKey;
+    private final byte[] streamsSubspaceKey;
+    private final byte[] snapshotsSubspaceKey;
+
+    public FoundationDBStreamReaderInstantiator(
+            final String name,
+            final byte[] entriesSubspaceKey,
+            final byte[] streamsSubspaceKey,
+            final byte[] snapshotsSubspaceKey) {
+      this.name = name;
+      this.entriesSubspaceKey = entriesSubspaceKey;
+      this.streamsSubspaceKey = streamsSubspaceKey;
+      this.snapshotsSubspaceKey = snapshotsSubspaceKey;
+    }
+
+    @Override
+    public FoundationDBStreamReaderActor instantiate() {
+      return new FoundationDBStreamReaderActor(name, entriesSubspaceKey, streamsSubspaceKey, snapshotsSubspaceKey);
+    }
+
+    @Override
+    public Class<FoundationDBStreamReaderActor> type() {
+      return FoundationDBStreamReaderActor.class;
+    }
   }
 }

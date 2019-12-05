@@ -20,6 +20,12 @@ public class SprintPlannedEntryAdapter implements EntryAdapter<SprintPlanned, Bi
   }
 
   @Override
+  public BinaryEntry toEntry(final SprintPlanned source, final int version, final String id, final Metadata metadata) {
+    final String serialization = JsonSerialization.serialized(source);
+    return new BinaryEntry(id, SprintPlanned.class, 1, serialization.getBytes(), version, metadata);
+  }
+
+  @Override
   public BinaryEntry toEntry(final SprintPlanned source, final Metadata metadata) {
     return toEntry(source, source.sprintId, metadata);
   }
