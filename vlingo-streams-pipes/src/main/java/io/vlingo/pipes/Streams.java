@@ -17,7 +17,7 @@ import java.util.List;
 
 public class Streams implements Closeable {
     private final World world;
-    private final List<Stream<?, ?>> streams;
+    private final List <Stream<?, ?>> streams;
     public final HttpStreamServer http;
 
     private Streams(World world) {

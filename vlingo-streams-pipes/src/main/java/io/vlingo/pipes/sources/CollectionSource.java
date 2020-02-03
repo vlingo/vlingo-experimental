@@ -21,7 +21,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class CollectionSource<T> implements Source<T> {
-    private final static Record[] EMPTY = new Record[0];
+    private final static Record<?>[] EMPTY = new Record[0];
 
     private final Collection<T> elements;
     private boolean consumed;
@@ -31,6 +31,7 @@ public class CollectionSource<T> implements Source<T> {
         consumed = false;
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> CollectionSource<T> fromArray(T... t) {
         return new CollectionSource<>(Arrays.asList(t));
     }

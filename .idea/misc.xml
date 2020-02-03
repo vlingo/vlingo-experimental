@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_3" />
+  <component name="SbtLocalSettings">
+    <option name="modificationStamps">
+      <map>
+        <entry key="$USER_HOME$/Projects/Lingo/Workspace/akka" value="70960157076000" />
+        <entry key="$USER_HOME$/Projects/Square-8/Workspace/cp-offer-management" value="1478863444000" />
+        <entry key="$USER_HOME$/Projects/Square-8/Workspace/cp-ordermanagement" value="1478624217000" />
+        <entry key="$USER_HOME$/Projects/Square-8/Workspace/gs1-order-avro" value="1478083319000" />
+        <entry key="$USER_HOME$/Projects/Square-8/Workspace/order-management-system" value="1477921310000" />
+        <entry key="$USER_HOME$/Projects/akka-persistence-perf" value="1479989475000" />
+      </map>
+    </option>
+    <option name="externalProjectsViewState">
+      <projects_view />
+    </option>
+  </component>
+  <component name="ScalaSbtSettings">
+    <option name="customVMPath" value="/System/Library/Frameworks/JavaVM.framework/Versions/Current" />
+  </component>
+</project>

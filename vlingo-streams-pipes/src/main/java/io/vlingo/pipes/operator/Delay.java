@@ -24,7 +24,7 @@ public class Delay<A> extends BasicOperator<A, A> {
         this.output = output;
         this.time = time;
         this.unit = unit;
-        this.executor = null; // CompletableFuture.delayedExecutor(time, unit);
+        this.executor = CompletableFuture.delayedExecutor(time, unit);
     }
 
     @Override
