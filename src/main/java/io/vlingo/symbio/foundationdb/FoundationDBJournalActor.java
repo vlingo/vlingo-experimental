@@ -66,7 +66,7 @@ public class FoundationDBJournalActor extends Actor implements Journal<byte[]> {
   private final byte[] entriesSubspaceKey;
   private int entriesUserVersion;
   private final String name;
-  private final Dispatcher<Dispatchable<Entry<byte[]>, State<byte[]>>> dispatcher;
+  private final List<Dispatcher<Dispatchable<Entry<byte[]>, State<byte[]>>>> dispatchers;
   private final ResettableReadOnlyList<Source<?>> wrapper;
   private final byte[] snapshotsSubspaceKey;
   private final Map<String, JournalReader<BaseEntry.BinaryEntry>> journalReaders;
@@ -77,9 +77,9 @@ public class FoundationDBJournalActor extends Actor implements Journal<byte[]> {
   private final StateAdapterProvider stateAdapterProvider;
   private final IdentityGenerator dispatchablesIdentityGenerator;
 
-  public FoundationDBJournalActor(final Dispatcher<Dispatchable<Entry<byte[]>, State<byte[]>>> dispatcher, final String name) throws Exception {
+  public FoundationDBJournalActor(final List<Dispatcher<Dispatchable<Entry<byte[]>, State<byte[]>>>> dispatchers, final String name) throws Exception {
     this.name = name;
-    this.dispatcher = dispatcher;
+    this.dispatchers = dispatchers;
     final Tuple4<Database, byte[], byte[], byte[]> database = initialize(name);
     this.database = database._1;
     this.entriesSubspaceKey = database._2;
@@ -321,6 +321,6 @@ public class FoundationDBJournalActor extends Actor implements Journal<byte[]> {
 
   private void dispatch(final String streamName, final int streamVersion, final List<Entry<byte[]>> entries, final State<byte[]> snapshot) {
     final String id = streamName + ":" + streamVersion + ":" + dispatchablesIdentityGenerator.generate().toString();
-    dispatcher.dispatch(new Dispatchable<>(id, LocalDateTime.now(), snapshot, entries));
+    dispatchers.forEach(d -> d.dispatch(new Dispatchable<>(id, LocalDateTime.now(), snapshot, entries)));
   }
 }
