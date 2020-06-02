@@ -1,6 +1,8 @@
 # vlingo-symbio-foundationdb
 
-The vlingo/PLATFORM implementation of vlingo/symbio for FoundationDB (currently experimental).
+The VLINGO/PLATFORM implementation of VLINGO/SYMBIO `Journal` for FoundationDB (currently experimental).
+
+Docs: https://docs.vlingo.io/vlingo-symbio/sourcing-journal-storage
 
 ## Installing FoundationDB
 
