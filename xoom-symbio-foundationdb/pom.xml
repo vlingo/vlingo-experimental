@@ -1,11 +1,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>io.vlingo</groupId>
-  <artifactId>vlingo-symbio-foundationdb</artifactId>
+  <groupId>io.vlingo.xoom</groupId>
+  <artifactId>xoom-symbio-foundationdb</artifactId>
   <version>0.9.3-RC4</version>
-  <name>vlingo-symbio-foundationdb</name>
-  <description>Implementation of vlingo-symbio for FoundationDB.</description>
-  <url>https://github.com/vlingo/vlingo-symbio-foundationdb</url>
+  <name>xoom-symbio-foundationdb</name>
+  <description>Implementation of xoom-symbio for FoundationDB.</description>
+  <url>https://github.com/vlingo/xoom-symbio-foundationdb</url>
   <licenses>
     <license>
       <name>Mozilla Public License 2.0</name>
@@ -13,9 +13,9 @@
     </license>
   </licenses>
   <scm>
-    <connection>scm:git:git://github.com/vlingo/vlingo-symbio-foundationdb.git</connection>
-    <developerConnection>scm:git:ssh://github.com/vlingo/vlingo-symbio-foundationdb.git</developerConnection>
-    <url>http://github.com/vlingo/vlingo-symbio-foundationdb/tree/master</url>
+    <connection>scm:git:git://github.com/vlingo/xoom-symbio-foundationdb.git</connection>
+    <developerConnection>scm:git:ssh://github.com/vlingo/xoom-symbio-foundationdb.git</developerConnection>
+    <url>http://github.com/vlingo/xoom-symbio-foundationdb/tree/master</url>
   </scm>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
