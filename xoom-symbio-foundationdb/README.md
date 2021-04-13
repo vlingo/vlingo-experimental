@@ -1,6 +1,6 @@
-# vlingo-symbio-foundationdb
+# xoom-symbio-foundationdb
 
-The VLINGO/PLATFORM implementation of VLINGO/SYMBIO `Journal` for FoundationDB (currently experimental).
+The VLINGO XOOM Platform implementation of VLINGO XOOM Symbio `Journal` for FoundationDB (currently experimental).
 
 Docs: https://docs.vlingo.io/vlingo-symbio/sourcing-journal-storage
 
