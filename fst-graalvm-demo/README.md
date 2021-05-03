@@ -1,7 +1,7 @@
 # fst-graalvm-demo
 Demo using Fast Serialization And GraalVM...\
 This is in conjunction with [github.com/vlingo](https://github.com/vlingo) and [vlingo.io](https://vlingo.io).\
-We encountered this issue when trying to run the native image of xoom-designer that use xoom-lattice who use fast serialization in inter-node messaging in our cluster backed grid compute and data.
+We encountered this issue when trying to run the native image of xoom-designer that use xoom-lattice which uses fast serialization in inter-node messaging in our cluster backed grid compute and data.
 
 ## Maven Build
 ```bash
