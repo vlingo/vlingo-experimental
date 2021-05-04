@@ -12,6 +12,54 @@ mvn install
 ```bash
 java -agentlib:native-image-agent=config-output-dir=src/main/resources/META-INF/native-image -jar target/fst-graalvm-0.0.1-SNAPSHOT-jar-with-dependencies.jar
 ```
+## Adding Missing Serialization
+```bash
+  {
+    "name": "java.lang.Object[]",
+    "customTargetConstructorClass": "java.lang.Object"
+  },
+  {
+    "name": "java.lang.Object[][]",
+    "customTargetConstructorClass": "java.lang.Object"
+  },
+  {
+    "name": "java.lang.Object[][][]",
+    "customTargetConstructorClass": "java.lang.Object"
+  },
+  {
+    "name": "java.sql.Timestamp"
+  },
+  {
+    "name": "java.lang.Object"
+  },
+  {
+    "name": "java.lang.Boolean"
+  },
+  {
+    "name": "java.lang.Character"
+  },
+  {
+    "name": "java.lang.Double"
+  },
+  {
+    "name": "java.lang.Float"
+  },
+  {
+    "name": "java.lang.Long"
+  },
+  {
+    "name": "java.lang.Integer"
+  },
+  {
+    "name": "java.lang.Short"
+  },
+  {
+    "name": "java.lang.Byte"
+  },
+  {
+    "name": "java.lang.String"
+  },
+```
 
 ## Build the native image
 ```bash
