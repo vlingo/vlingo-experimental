@@ -90,5 +90,5 @@ Exception in thread "main" com.oracle.svm.core.jdk.UnsupportedFeatureError: Seri
 	at org.nustaq.serialization.FSTConfiguration.initDefaultFstConfigurationInternal(FSTConfiguration.java:478)
 	at org.nustaq.serialization.FSTConfiguration.createDefaultConfiguration(FSTConfiguration.java:473)
 	at org.nustaq.serialization.FSTConfiguration.createDefaultConfiguration(FSTConfiguration.java:465)
-	at com.hamzajg.demo.fst.BootstrapApp.main(BootstrapApp.java:7)
+	at io.vlingo.xoom.experimental.fst.BootstrapApp.main(BootstrapApp.java:7)
 ```
