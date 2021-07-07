@@ -1,0 +1,431 @@
+[
+{
+  "name":"byte[]",
+  "allDeclaredFields":true
+},
+{
+  "name":"byte[][]",
+  "allDeclaredFields":true
+},
+{
+  "name":"char[]",
+  "allDeclaredFields":true
+},
+{
+  "name":"char[][]",
+  "allDeclaredFields":true
+},
+{
+  "name":"double[]",
+  "allDeclaredFields":true
+},
+{
+  "name":"double[][]",
+  "allDeclaredFields":true
+},
+{
+  "name":"float[]",
+  "allDeclaredFields":true
+},
+{
+  "name":"float[][]",
+  "allDeclaredFields":true
+},
+{
+  "name":"int[]",
+  "allDeclaredFields":true
+},
+{
+  "name":"int[][]",
+  "allDeclaredFields":true
+},
+{
+  "name":"java.lang.AbstractStringBuilder",
+  "allDeclaredFields":true,
+  "fields":[
+    {"name":"coder", "allowUnsafeAccess":true}, 
+    {"name":"count", "allowUnsafeAccess":true}, 
+    {"name":"value", "allowUnsafeAccess":true}
+  ],
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"java.lang.Boolean",
+  "allDeclaredFields":true,
+  "fields":[{"name":"value", "allowUnsafeAccess":true}]
+},
+{
+  "name":"java.lang.Byte",
+  "allDeclaredFields":true,
+  "fields":[{"name":"value", "allowUnsafeAccess":true}]
+},
+{
+  "name":"java.lang.Character",
+  "allDeclaredFields":true,
+  "fields":[{"name":"value", "allowUnsafeAccess":true}]
+},
+{
+  "name":"java.lang.Double",
+  "allDeclaredFields":true,
+  "fields":[{"name":"value", "allowUnsafeAccess":true}]
+},
+{
+  "name":"java.lang.Float",
+  "allDeclaredFields":true,
+  "fields":[{"name":"value", "allowUnsafeAccess":true}]
+},
+{
+  "name":"java.lang.Integer",
+  "allDeclaredFields":true,
+  "fields":[{"name":"value", "allowUnsafeAccess":true}]
+},
+{
+  "name":"java.lang.Long",
+  "allDeclaredFields":true,
+  "fields":[{"name":"value", "allowUnsafeAccess":true}]
+},
+{
+  "name":"java.lang.Number",
+  "allDeclaredFields":true
+},
+{
+  "name":"java.lang.Object",
+  "allDeclaredFields":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"java.lang.Object[]",
+  "allDeclaredFields":true
+},
+{
+  "name":"java.lang.Object[][]",
+  "allDeclaredFields":true
+},
+{
+  "name":"java.lang.Object[][][]",
+  "allDeclaredFields":true
+},
+{
+  "name":"java.lang.Short",
+  "allDeclaredFields":true,
+  "fields":[{"name":"value", "allowUnsafeAccess":true}]
+},
+{
+  "name":"java.lang.String",
+  "allDeclaredFields":true,
+  "fields":[
+    {"name":"coder", "allowUnsafeAccess":true}, 
+    {"name":"hash", "allowUnsafeAccess":true}, 
+    {"name":"value", "allowUnsafeAccess":true}
+  ]
+},
+{
+  "name":"java.lang.StringBuffer",
+  "allDeclaredFields":true,
+  "methods":[
+    {"name":"readObject","parameterTypes":["java.io.ObjectInputStream"] }, 
+    {"name":"writeObject","parameterTypes":["java.io.ObjectOutputStream"] }
+  ]
+},
+{
+  "name":"java.lang.StringBuilder",
+  "allDeclaredFields":true,
+  "methods":[
+    {"name":"readObject","parameterTypes":["java.io.ObjectInputStream"] }, 
+    {"name":"writeObject","parameterTypes":["java.io.ObjectOutputStream"] }
+  ]
+},
+{
+  "name":"java.math.BigDecimal",
+  "allDeclaredFields":true,
+  "fields":[
+    {"name":"intVal", "allowUnsafeAccess":true}, 
+    {"name":"scale", "allowUnsafeAccess":true}
+  ],
+  "methods":[
+    {"name":"readObject","parameterTypes":["java.io.ObjectInputStream"] }, 
+    {"name":"writeObject","parameterTypes":["java.io.ObjectOutputStream"] }
+  ]
+},
+{
+  "name":"java.math.BigInteger",
+  "allDeclaredFields":true,
+  "fields":[
+    {"name":"bitCountPlusOne", "allowUnsafeAccess":true}, 
+    {"name":"bitLengthPlusOne", "allowUnsafeAccess":true}, 
+    {"name":"firstNonzeroIntNumPlusTwo", "allowUnsafeAccess":true}, 
+    {"name":"lowestSetBitPlusTwo", "allowUnsafeAccess":true}, 
+    {"name":"mag", "allowUnsafeAccess":true}, 
+    {"name":"signum", "allowUnsafeAccess":true}
+  ],
+  "methods":[
+    {"name":"readObject","parameterTypes":["java.io.ObjectInputStream"] }, 
+    {"name":"writeObject","parameterTypes":["java.io.ObjectOutputStream"] }
+  ]
+},
+{
+  "name":"java.net.URL",
+  "allDeclaredFields":true,
+  "fields":[
+    {"name":"authority", "allowUnsafeAccess":true}, 
+    {"name":"file", "allowUnsafeAccess":true}, 
+    {"name":"hashCode", "allowUnsafeAccess":true}, 
+    {"name":"host", "allowUnsafeAccess":true}, 
+    {"name":"port", "allowUnsafeAccess":true}, 
+    {"name":"protocol", "allowUnsafeAccess":true}, 
+    {"name":"ref", "allowUnsafeAccess":true}
+  ],
+  "methods":[
+    {"name":"readObject","parameterTypes":["java.io.ObjectInputStream"] }, 
+    {"name":"readResolve","parameterTypes":[] }, 
+    {"name":"writeObject","parameterTypes":["java.io.ObjectOutputStream"] }
+  ]
+},
+{
+  "name":"java.sql.Date",
+  "allDeclaredFields":true
+},
+{
+  "name":"java.sql.Timestamp",
+  "allDeclaredFields":true,
+  "fields":[{"name":"nanos", "allowUnsafeAccess":true}]
+},
+{
+  "name":"java.text.DateFormat",
+  "allDeclaredFields":true,
+  "fields":[
+    {"name":"calendar", "allowUnsafeAccess":true}, 
+    {"name":"numberFormat", "allowUnsafeAccess":true}
+  ]
+},
+{
+  "name":"java.text.Format",
+  "allDeclaredFields":true
+},
+{
+  "name":"java.text.SimpleDateFormat",
+  "allDeclaredFields":true,
+  "fields":[
+    {"name":"defaultCenturyStart", "allowUnsafeAccess":true}, 
+    {"name":"formatData", "allowUnsafeAccess":true}, 
+    {"name":"locale", "allowUnsafeAccess":true}, 
+    {"name":"pattern", "allowUnsafeAccess":true}, 
+    {"name":"serialVersionOnStream", "allowUnsafeAccess":true}
+  ],
+  "methods":[{"name":"readObject","parameterTypes":["java.io.ObjectInputStream"] }]
+},
+{
+  "name":"java.util.AbstractCollection",
+  "allDeclaredFields":true
+},
+{
+  "name":"java.util.AbstractList",
+  "allDeclaredFields":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"java.util.AbstractMap",
+  "allDeclaredFields":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"java.util.AbstractSequentialList",
+  "allDeclaredFields":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"java.util.AbstractSet",
+  "allDeclaredFields":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"java.util.ArrayList",
+  "allDeclaredFields":true,
+  "fields":[{"name":"size", "allowUnsafeAccess":true}],
+  "methods":[
+    {"name":"readObject","parameterTypes":["java.io.ObjectInputStream"] }, 
+    {"name":"writeObject","parameterTypes":["java.io.ObjectOutputStream"] }
+  ]
+},
+{
+  "name":"java.util.BitSet",
+  "allDeclaredFields":true,
+  "fields":[{"name":"words", "allowUnsafeAccess":true}],
+  "methods":[
+    {"name":"readObject","parameterTypes":["java.io.ObjectInputStream"] }, 
+    {"name":"writeObject","parameterTypes":["java.io.ObjectOutputStream"] }
+  ]
+},
+{
+  "name":"java.util.Calendar",
+  "allDeclaredFields":true,
+  "fields":[
+    {"name":"areFieldsSet", "allowUnsafeAccess":true}, 
+    {"name":"fields", "allowUnsafeAccess":true}, 
+    {"name":"firstDayOfWeek", "allowUnsafeAccess":true}, 
+    {"name":"isSet", "allowUnsafeAccess":true}, 
+    {"name":"isTimeSet", "allowUnsafeAccess":true}, 
+    {"name":"lenient", "allowUnsafeAccess":true}, 
+    {"name":"minimalDaysInFirstWeek", "allowUnsafeAccess":true}, 
+    {"name":"nextStamp", "allowUnsafeAccess":true}, 
+    {"name":"serialVersionOnStream", "allowUnsafeAccess":true}, 
+    {"name":"time", "allowUnsafeAccess":true}, 
+    {"name":"zone", "allowUnsafeAccess":true}
+  ],
+  "methods":[
+    {"name":"readObject","parameterTypes":["java.io.ObjectInputStream"] }, 
+    {"name":"writeObject","parameterTypes":["java.io.ObjectOutputStream"] }
+  ]
+},
+{
+  "name":"java.util.Date",
+  "allDeclaredFields":true,
+  "methods":[
+    {"name":"readObject","parameterTypes":["java.io.ObjectInputStream"] }, 
+    {"name":"writeObject","parameterTypes":["java.io.ObjectOutputStream"] }
+  ]
+},
+{
+  "name":"java.util.Dictionary",
+  "allDeclaredFields":true,
+  "methods":[{"name":"<init>","parameterTypes":[] }]
+},
+{
+  "name":"java.util.GregorianCalendar",
+  "allDeclaredFields":true,
+  "fields":[{"name":"gregorianCutover", "allowUnsafeAccess":true}],
+  "methods":[{"name":"readObject","parameterTypes":["java.io.ObjectInputStream"] }]
+},
+{
+  "name":"java.util.HashMap",
+  "allDeclaredFields":true,
+  "fields":[
+    {"name":"loadFactor", "allowUnsafeAccess":true}, 
+    {"name":"threshold", "allowUnsafeAccess":true}
+  ],
+  "methods":[
+    {"name":"readObject","parameterTypes":["java.io.ObjectInputStream"] }, 
+    {"name":"writeObject","parameterTypes":["java.io.ObjectOutputStream"] }
+  ]
+},
+{
+  "name":"java.util.Hashtable",
+  "allDeclaredFields":true,
+  "fields":[
+    {"name":"loadFactor", "allowUnsafeAccess":true}, 
+    {"name":"threshold", "allowUnsafeAccess":true}
+  ],
+  "methods":[
+    {"name":"readObject","parameterTypes":["java.io.ObjectInputStream"] }, 
+    {"name":"writeObject","parameterTypes":["java.io.ObjectOutputStream"] }
+  ]
+},
+{
+  "name":"java.util.LinkedList",
+  "allDeclaredFields":true,
+  "methods":[
+    {"name":"readObject","parameterTypes":["java.io.ObjectInputStream"] }, 
+    {"name":"writeObject","parameterTypes":["java.io.ObjectOutputStream"] }
+  ]
+},
+{
+  "name":"java.util.Locale",
+  "allDeclaredFields":true,
+  "methods":[
+    {"name":"readObject","parameterTypes":["java.io.ObjectInputStream"] }, 
+    {"name":"readResolve","parameterTypes":[] }, 
+    {"name":"writeObject","parameterTypes":["java.io.ObjectOutputStream"] }
+  ]
+},
+{
+  "name":"java.util.SimpleTimeZone",
+  "allDeclaredFields":true,
+  "fields":[
+    {"name":"dstSavings", "allowUnsafeAccess":true}, 
+    {"name":"endDay", "allowUnsafeAccess":true}, 
+    {"name":"endDayOfWeek", "allowUnsafeAccess":true}, 
+    {"name":"endMode", "allowUnsafeAccess":true}, 
+    {"name":"endMonth", "allowUnsafeAccess":true}, 
+    {"name":"endTime", "allowUnsafeAccess":true}, 
+    {"name":"endTimeMode", "allowUnsafeAccess":true}, 
+    {"name":"monthLength", "allowUnsafeAccess":true}, 
+    {"name":"rawOffset", "allowUnsafeAccess":true}, 
+    {"name":"serialVersionOnStream", "allowUnsafeAccess":true}, 
+    {"name":"startDay", "allowUnsafeAccess":true}, 
+    {"name":"startDayOfWeek", "allowUnsafeAccess":true}, 
+    {"name":"startMode", "allowUnsafeAccess":true}, 
+    {"name":"startMonth", "allowUnsafeAccess":true}, 
+    {"name":"startTime", "allowUnsafeAccess":true}, 
+    {"name":"startTimeMode", "allowUnsafeAccess":true}, 
+    {"name":"startYear", "allowUnsafeAccess":true}, 
+    {"name":"useDaylight", "allowUnsafeAccess":true}
+  ],
+  "methods":[
+    {"name":"readObject","parameterTypes":["java.io.ObjectInputStream"] }, 
+    {"name":"writeObject","parameterTypes":["java.io.ObjectOutputStream"] }
+  ]
+},
+{
+  "name":"java.util.TimeZone",
+  "allDeclaredFields":true,
+  "fields":[{"name":"ID", "allowUnsafeAccess":true}]
+},
+{
+  "name":"java.util.TreeMap",
+  "allDeclaredFields":true,
+  "fields":[{"name":"comparator", "allowUnsafeAccess":true}],
+  "methods":[
+    {"name":"readObject","parameterTypes":["java.io.ObjectInputStream"] }, 
+    {"name":"writeObject","parameterTypes":["java.io.ObjectOutputStream"] }
+  ]
+},
+{
+  "name":"java.util.TreeSet",
+  "allDeclaredFields":true,
+  "methods":[
+    {"name":"readObject","parameterTypes":["java.io.ObjectInputStream"] }, 
+    {"name":"writeObject","parameterTypes":["java.io.ObjectOutputStream"] }
+  ]
+},
+{
+  "name":"java.util.Vector",
+  "allDeclaredFields":true,
+  "fields":[
+    {"name":"capacityIncrement", "allowUnsafeAccess":true}, 
+    {"name":"elementCount", "allowUnsafeAccess":true}, 
+    {"name":"elementData", "allowUnsafeAccess":true}
+  ],
+  "methods":[
+    {"name":"readObject","parameterTypes":["java.io.ObjectInputStream"] }, 
+    {"name":"writeObject","parameterTypes":["java.io.ObjectOutputStream"] }
+  ]
+},
+{
+  "name":"java.util.concurrent.ConcurrentHashMap",
+  "allDeclaredFields":true,
+  "methods":[
+    {"name":"readObject","parameterTypes":["java.io.ObjectInputStream"] }, 
+    {"name":"writeObject","parameterTypes":["java.io.ObjectOutputStream"] }
+  ]
+},
+{
+  "name":"long[]",
+  "allDeclaredFields":true
+},
+{
+  "name":"long[][]",
+  "allDeclaredFields":true
+},
+{
+  "name":"short[]",
+  "allDeclaredFields":true
+},
+{
+  "name":"short[][]",
+  "allDeclaredFields":true
+},
+{
+  "name":"sun.misc.Unsafe",
+  "fields":[{"name":"theUnsafe"}]
+}
+]
